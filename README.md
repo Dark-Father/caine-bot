@@ -16,8 +16,8 @@ IRC plugin for supybot
 
 <h3>Planned:</h3>
 <ul type="square">
-	<li>* character management</li>
-	<li>* tracking willpower, blood pool in database</li>
-	<li>* combat system tracking</li>
+	<li>character management</li>
+	<li>tracking willpower, blood pool in database</li>
+	<li>combat system tracking</li>
 </ul>
 
