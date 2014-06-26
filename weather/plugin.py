@@ -39,11 +39,6 @@ from urllib2 import urlopen
 import time
 
 #ZIP Code is Benton Heights, MI: 49022
-#URL: http://w1.weather.gov/xml/current_obs/KBEH.rss
-#XML: http://w1.weather.gov/xml/current_obs/KBEH.xml
-
-#CURRENT:
-
 
 class Weather(callbacks.Plugin):
     """Weather Control for the city of Minerva, MI"""
@@ -53,7 +48,7 @@ class Weather(callbacks.Plugin):
         self.__parent.__init__(irc)
 
     def weather(self, irc, msg, args):
-        """Pretty pretty princess
+        """I don't take kindly to back-talking.
         """
         _URL = "http://api.openweathermap.org/data/2.5/weather?id="
         _CITY_ID = "4985711"

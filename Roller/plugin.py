@@ -37,25 +37,15 @@ import random
 
 
 class Roller(callbacks.Plugin):
-    """DiceRoller"""
-	
-	def __init__(self, irc):
-		super(Roller, self).__init__(irc)
-        #self.deck = Deck()
-		#self.rng = random.Roller()
-		#self.rng.seed()
-	
-	def random(self, irc, msg, args):
-		"""RNG"""
-		irc.reply(str(self.rng.random()))
+    """roll dice"""
 
-	random = wrap(random)
+    def __init__(self, irc,num,diff):
+        super(Roller, self).__init__(irc)
+        self.num = num
+        self.diff= diff
 
-	def diceroll(self, irc, msg, args, n):
-		"""[<number of sides>] Rolls a die with <number of sides> sides.  The default number of sides		is 6."""
-		s = 'rolls a %s' % self.rng.randrange(1, n)
-		irc.reply(s, action=True)
-	diceroll = wrap(diceroll, [additional(('int', 'number of sides'), 6)])
+    def roll(self,irc,msg,num,diff):
+
 
 Class = Roller
 
