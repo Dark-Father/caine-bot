@@ -36,15 +36,67 @@ import supybot.callbacks as callbacks
 import random
 
 
+success = 0
+ones = 0
+
 class Roller(callbacks.Plugin):
-    """roll dice"""
+    """rolls dice for Vampire the Masquerade"""
 
-    def __init__(self, irc,num,diff):
-        super(Roller, self).__init__(irc)
-        self.num = num
-        self.diff= diff
+    def __init__(self, irc):
+        #pass
+        self.__parent = super(Roller, self)
+        self.__parent.__init__(irc)
+        #self.num = num
+        #self.difficulty = difficulty
 
-    def roll(self,irc,msg,num,diff):
+    def roll(self, irc, msg, args, num, difficulty):
+        """+ dicepool difficulty. IE: !roll 5 6"""
+
+        #VARIABLES
+        sides = 11 #11 due to python counting from 0
+        outcome = []
+        success = 0
+        ones = 0
+        spec = 0
+        difficulty = int(difficulty)
+
+        # CALCULATIONS
+        for x in range(num):
+            rolled = str(random.randrange(1, sides))
+            outcome.append(rolled)
+
+        for s in outcome:
+            if int(s) == 10:
+                spec += 1
+            if int(s) >= difficulty:
+                success += 1
+            elif int(s) == 1:
+                spec -= 1
+                success -= 1
+                ones += 1
+
+        spec = success + spec
+
+        # OUTPUT, bottom up approach
+        if success <= 0 and ones > 0:
+            success = "BOTCH  >:D"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
+            irc.reply(dicepool)
+        elif success == 0 and ones == 0:
+            success = "Failure"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
+            irc.reply(dicepool)
+        elif success > 0 and spec==success:
+            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(outcome), success, str(difficulty))
+            #dicepool = 'rolled: %s (%s successes, spec(%s) successes)@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
+            irc.reply(dicepool)
+        elif success > 0 and spec > success:
+            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
+            irc.reply(dicepool)
+
+    roll = wrap(roll,['int', 'int'])
+
+
 
 
 Class = Roller
