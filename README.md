@@ -9,6 +9,8 @@ IRC plugin for supybot
 <h3>Working:</h3>
 <ul type="square">
 	<li>dice rolling</li>
+</ul>
+
 <h3>In Progress:</h3>
 <ul type="square">
 	<li>weather system - working, need to make fancy</li>
