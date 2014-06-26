@@ -11,7 +11,7 @@ IRC plugin for supybot
 <h3>In Progress:</h3>
 <ul type="square">
 	<li>dice rolling</li>
-	<li>weather system pull from website</li>
+	<li>weather system - working, need to make fancy</li>
 </ul>		
 
 <h3>Planned:</h3>
