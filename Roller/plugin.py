@@ -35,9 +35,6 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import random
 
-success = 0
-ones = 0
-
 class Roller(callbacks.Plugin):
     """rolls dice for Vampire the Masquerade"""
     threaded = True
@@ -46,8 +43,6 @@ class Roller(callbacks.Plugin):
         #pass
         self.__parent = super(Roller, self)
         self.__parent.__init__(irc)
-        #self.num = num
-        #self.difficulty = difficulty
 
     def roll(self, irc, msg, args, num, difficulty):
         """dicepool difficulty IE: !roll 5 6"""
@@ -88,7 +83,6 @@ class Roller(callbacks.Plugin):
             irc.reply(dicepool)
         elif success > 0 and spec==success:
             dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            #dicepool = 'rolled: %s (%s successes, spec(%s) successes)@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
             irc.reply(dicepool)
         elif success > 0 and spec > success:
             dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
