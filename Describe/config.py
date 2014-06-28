@@ -41,11 +41,11 @@ def configure(advanced):
 
     mysql_host = something("""Enter the address of the MySQL host.""", default="localhost")
     Describe.mysql_host.setValue(mysql_host)
-    mysql_username = something("""Enter the MySQL username to use for LoRC.""", default="elysia")
+    mysql_username = something("""Enter the MySQL username to use for Describe.""", default="elysia")
     Describe.mysql_username.setValue(mysql_username)
     mysql_password = anything("""Enter the password to use.""", default="elysia")
     Describe.mysql_password.setValue(mysql_password)
-    mysql_schema = something("""The schema where the LoRC tables are stored.""", default="elysia")
+    mysql_schema = something("""The schema where the Describe tables are stored.""", default="elysia")
     Describe.mysql_schema.setValue(mysql_schema)
 
 
