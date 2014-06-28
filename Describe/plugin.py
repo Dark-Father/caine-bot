@@ -50,30 +50,25 @@ class Describe(callbacks.Plugin):
         self.__parent = super(Describe, self)
         self.__parent.__init__(irc)
 
-
     #private function for ops(aka storytellers) this will initialize a arg which is the character's IRC nick.
     # this inserts the default record into the database
     # autosets the description to "no description set"
-    def register(self, irc, msg, args, nick):
-        pass
+    def newchar(self, irc, msg, args, nick):
+        nick = nick
+        irc.reply("has registered a new player.", action=True)
 
-    register= wrap(register, [('text')])
+    newchar = wrap(newchar, ['admin', 'text'])
 
     #associate a description to the the irc.nick
     def setdesc(self, irc, msg, args, text):
         pass
-
-
-
-    setdesc = wrap(wrap(setdesc, [('text')]))
+    setdesc = wrap(wrap(setdesc, ['text']))
 
 
     #set the irc.nick's link association. Generally used to set links to character wiki page or image link
     def setlink(self, irc, msg, args, text):
         pass
-
-
-    setlink = wrap(setlink, [('text')])
+    setlink = wrap(setlink, ['text'])
 
     #!describe <character> -- returns results by querying mysqldb
     # for irc.nick and it's associated description set by !setdesc
@@ -82,9 +77,6 @@ class Describe(callbacks.Plugin):
     # for assistance in registering their nick
     def describe(self, irc, msg, args, text):
         pass
-
-
-
-    describe = wrap(describe, [('text')])
+    describe = wrap(describe, ['text'])
 
 Class = Describe
