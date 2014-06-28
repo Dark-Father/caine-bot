@@ -43,13 +43,48 @@ import MySQLdb
 
 
 class Describe(callbacks.Plugin):
-    """Add the help for "@plugin help Describe" here
-    This should describe *how* to use this plugin."""
+    """This plugin will register a character and then allow the player to set a description and associated URL."""
     threaded = True
-    pass
 
+    def __init__(self, irc):
+        self.__parent = super(Describe, self)
+        self.__parent.__init__(irc)
+
+
+    #private function for ops(aka storytellers) this will initialize a arg which is the character's IRC nick.
+    # this inserts the default record into the database
+    # autosets the description to "no description set"
+    def register(self, irc, msg, args, nick):
+        pass
+
+    register= wrap(register, [('text')])
+
+    #associate a description to the the irc.nick
+    def setdesc(self, irc, msg, args, text):
+        pass
+
+
+
+    setdesc = wrap(wrap(setdesc, [('text')]))
+
+
+    #set the irc.nick's link association. Generally used to set links to character wiki page or image link
+    def setlink(self, irc, msg, args, text):
+        pass
+
+
+    setlink = wrap(setlink, [('text')])
+
+    #!describe <character> -- returns results by querying mysqldb
+    # for irc.nick and it's associated description set by !setdesc
+    # it should also return it's associated URL (still text area) if one exists
+    # this will also verify if a character is registered and inform the character if they need to contact an ST
+    # for assistance in registering their nick
+    def describe(self, irc, msg, args, text):
+        pass
+
+
+
+    describe = wrap(describe, [('text')])
 
 Class = Describe
-
-
-# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:

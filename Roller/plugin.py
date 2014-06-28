@@ -44,8 +44,9 @@ class Roller(callbacks.Plugin):
         self.__parent = super(Roller, self)
         self.__parent.__init__(irc)
 
-    def roll(self, irc, msg, args, num, difficulty):
-        """dicepool difficulty IE: !roll 5 6"""
+    def roll(self, irc, msg, args, num, difficulty, texty):
+        """
+        !roll <number of dice> <difficulty> (optional action text)"""
 
         #VARIABLES
         sides = 11 #11 due to python counting from 0
@@ -88,7 +89,7 @@ class Roller(callbacks.Plugin):
             dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
             irc.reply(dicepool)
 
-    roll = wrap(roll, ['int', 'int'])
+    roll = wrap(roll, ['int', 'int', optional('text')])
 
 
 
