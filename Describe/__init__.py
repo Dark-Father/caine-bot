@@ -29,7 +29,8 @@
 ###
 
 """
-Weather Control for the city of Minerva, MI
+Add a description of the plugin (to be presented to the user inside the wizard)
+here.  This should describe *what* the plugin does.
 """
 
 import supybot
@@ -47,7 +48,7 @@ __author__ = supybot.Author('David Rickman', 'freedomischaos', 'rickmand@gmail.c
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = 'https://github.com/freedomischaos/caine-bot' # 'https://github.com/freedomischaos/caine-bot'
+__url__ = 'https://github.com/freedomischaos/caine-bot'
 
 import config
 import plugin
