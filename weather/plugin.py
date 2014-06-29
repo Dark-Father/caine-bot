@@ -64,17 +64,13 @@ class Weather(callbacks.Plugin):
 
         #for the good guys, America fuck yea!
         i = load(_FULL2_IMP)
-
         itemperature = i['main']['temp']
         #temperature_unit = 'F'
         conditions = i['weather'][0]['description']
 
-
         #for the Communists out there...
         m = load(_FULL2_METRIC)
-
         mtemperature = m['main']['temp']
-
 
         #shitty weather station says...
         s = "The station reports that the current condition is: {0} with a temperature of {1}{2}({3}{4})"
@@ -82,14 +78,8 @@ class Weather(callbacks.Plugin):
             conditions[0].upper() + conditions[1:].lower(),
             int(round(itemperature)), "F",
             int(round(mtemperature)), "C")
-
-
         irc.reply(report)
 
-
     weather = wrap(weather)
-
-
-
 
 Class = Weather

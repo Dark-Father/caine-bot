@@ -39,14 +39,14 @@ def configure(advanced):
     from supybot.questions import expect, anything, something, yn
     conf.registerPlugin('Tracker', True)
 
-    mysql_host = something("""Enter the address of the MySQL host.""", default="localhost")
-    Tracker.mysql_host.setValue(mysql_host)
-    mysql_username = something("""Enter the MySQL username to use for Tracker.""", default="tracker")
-    Tracker.mysql_username.setValue(mysql_username)
-    mysql_password = anything("""Enter the password to use.""", default="tracker")
-    Tracker.mysql_password.setValue(mysql_password)
-    mysql_schema = something("""The schema where the Tracker tables are stored.""", default="tracker")
-    Tracker.mysql_schema.setValue(mysql_schema)
+    #mysql_host = something("""Enter the address of the MySQL host.""", default="localhost")
+    #Tracker.mysql_host.setValue(mysql_host)
+    #mysql_username = something("""Enter the MySQL username to use for Tracker.""", default="tracker")
+    #Tracker.mysql_username.setValue(mysql_username)
+    #mysql_password = anything("""Enter the password to use.""", default="tracker")
+    #Tracker.mysql_password.setValue(mysql_password)
+    #mysql_schema = something("""The schema where the Tracker tables are stored.""", default="tracker")
+    #Tracker.mysql_schema.setValue(mysql_schema)
 
 
 Tracker = conf.registerPlugin('Tracker')

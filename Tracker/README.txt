@@ -2,13 +2,13 @@ Plugin to remember character descriptions, bloodpool, willpower and eXPerience b
 This is for future possible web-based management.
 ------------------------------------
 To begin, an admin (generally storyteller) must register the new player.
-This generates the necessary tables for the new player and inserts base values.
-!newchar <desired IRC Nick> <Kindred generation> <willpower>
+This generates the necessary tables for the new player and inserts the base values.
+!newchar <desired IRC Nick> <generation> <willpower>
 
-Example: !newchar David 9 9
+Example: !newchar David 9 7
 [IRC] BOT has registered a new player: David
-[IRC] BOT has set Generation at 9 (bloodpool 14), with Willpower: 9
-------------------------------------
+[IRC] BOT has set Generation at 9 (bloodpool 14), with Willpower: 7
+
 A character can be deleted from the database by an admin (ST).
 !delchar <IRC NICK>
 

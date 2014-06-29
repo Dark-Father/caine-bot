@@ -62,15 +62,18 @@ class Tracker(callbacks.Plugin):
     # autosets the generational bloodpool size
     # autosets the willpower
     #example: !newchar David 9 7. Will sent the character name to "David" with Generation 9 (14bp) and 7 willpower
-    def newchar(self, irc, msg, args, nick, generation, willpower):
-        irc.reply("has registered a new player.", action=True)
+    def newchar(self, irc, msg, args, name, generation, willpower):
+        """registers a new character to the database"""
+        character = u"registered: {0:s} | Generation: {1:s} | Willpower: {2:s}.".format(name, generation, willpower)
+        irc.reply(character)
 
-    newchar = wrap(newchar, ['admin', 'text'])
+    newchar = wrap(newchar, ['admin', 'text', 'int', 'int'])
 
     #private function for ops(aka storyteller) to delete a character entirely.
-    def delchar(self, irc, msg, args, nick):
-        nick = nick
-        irc.reply("has deleted player.", action=True)
+    def delchar(self, irc, msg, args, name):
+        """removes a character from the database"""
+        removed = "has removed character: %s from the database." % name
+        irc.reply(removed, action=True)
 
     delchar = wrap(delchar, ['admin', 'text'])
 
@@ -88,9 +91,9 @@ class Tracker(callbacks.Plugin):
     setlink = wrap(setlink, ['text'])
 
     #!describe <character> -- returns results by querying mysqldb
-    # for irc.nick and it's associated description set by !setdesc
-    # it should also return it's associated URL (still text area) if one exists
-    # this will also verify if a character is registered and inform the character if they need to contact an ST
+    # for character name and its associated description set by !setdesc
+    # it should also return its associated URL (still text area) if one exists
+    # this will also verify if a character is registered or not and inform the character if they need to contact an ST
     # for assistance in registering their nick
     def describe(self, irc, msg, args, text):
         pass
