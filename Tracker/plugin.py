@@ -63,9 +63,8 @@ class Tracker(callbacks.Plugin):
     # autosets the willpower
     #example: !newchar David 9 7. Will sent the character name to "David" with Generation 9 (14bp) and 7 willpower
     def newchar(self, irc, msg, args, name, generation, willpower):
-        """registers a new character to the database
-        !newchar <name> <generation> <willpower>"""
-
+        """parameters: <name> <generation> <willpower>
+        registers a new character to the database"""
         character = "registered: %s | Generation: %s | Willpower: %s." % (name, generation, willpower)
         irc.reply(character)
 
