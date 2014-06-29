@@ -53,6 +53,3 @@ Describe = conf.registerPlugin('Describe')
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(Describe, 'someConfigVariableName',
 #     registry.Boolean(False, """Help for someConfigVariableName."""))
-
-
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

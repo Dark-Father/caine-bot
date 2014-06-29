@@ -68,17 +68,16 @@ class Roller(callbacks.Plugin):
                 success += 1
             elif int(s) == 1:
                 spec -= 1
-                success -= 1
                 ones += 1
 
-        spec = success + spec
+        spec += success
 
         # OUTPUT, bottom up approach
-        if success <= 0 and ones > 0:
+        if success == 0 and ones > 0:
             success = "BOTCH  >:D"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
             irc.reply(dicepool)
-        elif success == 0 and ones == 0:
+        elif success > 0 and ones >= success:
             success = "Failure"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
             irc.reply(dicepool)
@@ -94,6 +93,3 @@ class Roller(callbacks.Plugin):
 
 
 Class = Roller
-
-
-
