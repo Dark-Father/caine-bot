@@ -57,10 +57,12 @@ class Roller(callbacks.Plugin):
         difficulty = int(difficulty)
 
         # CALCULATIONS
+        #build roll outcome list
         for x in range(num):
             rolled = str(random.randrange(1, sides))
             outcome.append(rolled)
 
+        #compare outcome list with successes, 1s and 10s rolled and calc accordingly
         for s in outcome:
             if int(s) == 10:
                 spec += 1
@@ -72,19 +74,19 @@ class Roller(callbacks.Plugin):
 
         spec += success
 
-        # OUTPUT, bottom up approach
+        # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
         if success == 0 and ones > 0:
             success = "BOTCH  >:D"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
             irc.reply(dicepool)
-        elif success > 0 and ones >= success:
+        elif 0 < success <= ones:
             success = "Failure"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
             irc.reply(dicepool)
-        elif success > 0 and spec==success:
+        elif 0 < success == spec:
             dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(outcome), success, str(difficulty))
             irc.reply(dicepool)
-        elif success > 0 and spec > success:
+        elif 0 < success < spec:
             dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
             irc.reply(dicepool)
 
