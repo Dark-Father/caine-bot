@@ -63,11 +63,13 @@ class Tracker(callbacks.Plugin):
     # autosets the willpower
     #example: !newchar David 9 7. Will sent the character name to "David" with Generation 9 (14bp) and 7 willpower
     def newchar(self, irc, msg, args, name, generation, willpower):
-        """registers a new character to the database"""
-        character = u"registered: {0:s} | Generation: {1:s} | Willpower: {2:s}.".format(name, generation, willpower)
+        """registers a new character to the database
+        !newchar <name> <generation> <willpower>"""
+
+        character = "registered: %s | Generation: %s | Willpower: %s." % (name, generation, willpower)
         irc.reply(character)
 
-    newchar = wrap(newchar, ['admin', 'text', 'int', 'int'])
+    newchar = wrap(newchar, ['admin', 'something', 'int', 'int'])
 
     #private function for ops(aka storyteller) to delete a character entirely.
     def delchar(self, irc, msg, args, name):
