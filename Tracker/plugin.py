@@ -42,28 +42,45 @@ import supybot.callbacks as callbacks
 import MySQLdb
 
 
-class Describe(callbacks.Plugin):
-    """This plugin will register a character and then allow the player to set a description and associated URL."""
+class Tracker(callbacks.Plugin):
+    """This plugin will register a character in the database.
+    Initialize their bloodpool and willpower and track it
+    Track Experience and allow them to spend it."""
     threaded = True
 
     def __init__(self, irc):
-        self.__parent = super(Describe, self)
+        self.__parent = super(Tracker, self)
         self.__parent.__init__(irc)
 
-    #private function for ops(aka storytellers) this will initialize a arg which is the character's IRC nick.
+
+##############################################################################
+################### Tracker: Storyteller Functions ###########################
+##############################################################################
+    #private function for ops(aka storytellers) this will initialize a record.
     # this inserts the default record into the database
     # autosets the description to "no description set"
-    def newchar(self, irc, msg, args, nick):
-        nick = nick
+    # autosets the generational bloodpool size
+    # autosets the willpower
+    #example: !newchar David 9 7. Will sent the character name to "David" with Generation 9 (14bp) and 7 willpower
+    def newchar(self, irc, msg, args, nick, generation, willpower):
         irc.reply("has registered a new player.", action=True)
 
     newchar = wrap(newchar, ['admin', 'text'])
 
+    #private function for ops(aka storyteller) to delete a character entirely.
+    def delchar(self, irc, msg, args, nick):
+        nick = nick
+        irc.reply("has deleted player.", action=True)
+
+    delchar = wrap(delchar, ['admin', 'text'])
+
+############################################################################
+################### Tracker: Description Section ###########################
+############################################################################
     #associate a description to the the irc.nick
     def setdesc(self, irc, msg, args, text):
         pass
     setdesc = wrap(wrap(setdesc, ['text']))
-
 
     #set the irc.nick's link association. Generally used to set links to character wiki page or image link
     def setlink(self, irc, msg, args, text):
@@ -79,4 +96,16 @@ class Describe(callbacks.Plugin):
         pass
     describe = wrap(describe, ['text'])
 
-Class = Describe
+##########################################################################
+################### Tracker: Bloodpool Section ###########################
+##########################################################################
+
+##########################################################################
+################### Tracker: Willpower Section ###########################
+##########################################################################
+
+###########################################################################
+################### Tracker: Experience Section ###########################
+###########################################################################
+
+Class = Tracker

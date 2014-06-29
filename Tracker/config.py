@@ -37,19 +37,19 @@ def configure(advanced):
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
     from supybot.questions import expect, anything, something, yn
-    conf.registerPlugin('Describe', True)
+    conf.registerPlugin('Tracker', True)
 
     mysql_host = something("""Enter the address of the MySQL host.""", default="localhost")
-    Describe.mysql_host.setValue(mysql_host)
-    mysql_username = something("""Enter the MySQL username to use for Describe.""", default="elysia")
-    Describe.mysql_username.setValue(mysql_username)
-    mysql_password = anything("""Enter the password to use.""", default="elysia")
-    Describe.mysql_password.setValue(mysql_password)
-    mysql_schema = something("""The schema where the Describe tables are stored.""", default="elysia")
-    Describe.mysql_schema.setValue(mysql_schema)
+    Tracker.mysql_host.setValue(mysql_host)
+    mysql_username = something("""Enter the MySQL username to use for Tracker.""", default="tracker")
+    Tracker.mysql_username.setValue(mysql_username)
+    mysql_password = anything("""Enter the password to use.""", default="tracker")
+    Tracker.mysql_password.setValue(mysql_password)
+    mysql_schema = something("""The schema where the Tracker tables are stored.""", default="tracker")
+    Tracker.mysql_schema.setValue(mysql_schema)
 
 
-Describe = conf.registerPlugin('Describe')
+Tracker = conf.registerPlugin('Tracker')
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(Describe, 'someConfigVariableName',
 #     registry.Boolean(False, """Help for someConfigVariableName."""))
