@@ -38,8 +38,9 @@ import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
 import supybot.registry as registry
 import supybot.callbacks as callbacks
-
-import MySQLdb
+#import MySQLdb
+#pip install peewee
+from peewee import *
 
 
 class Tracker(callbacks.Plugin):
