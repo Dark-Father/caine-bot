@@ -73,7 +73,8 @@ class Tracker(callbacks.Plugin):
 
     #private function for ops(aka storyteller) to delete a character entirely.
     def delchar(self, irc, msg, args, name):
-        """removes a character from the database"""
+        """parameters: <name>
+        removes a character from the database"""
         removed = "has removed character: %s from the database." % name
         irc.reply(removed, action=True)
 
@@ -84,11 +85,13 @@ class Tracker(callbacks.Plugin):
 ############################################################################
     #associate a description to the the irc.nick
     def setdesc(self, irc, msg, args, text):
+        """Sets description for your character"""
         pass
     setdesc = wrap(wrap(setdesc, ['text']))
 
     #set the irc.nick's link association. Generally used to set links to character wiki page or image link
     def setlink(self, irc, msg, args, text):
+        """Sets a link for your characeter (generally image or wiki link)"""
         pass
     setlink = wrap(setlink, ['text'])
 
@@ -98,12 +101,36 @@ class Tracker(callbacks.Plugin):
     # this will also verify if a character is registered or not and inform the character if they need to contact an ST
     # for assistance in registering their nick
     def describe(self, irc, msg, args, text):
+        """Describes a character"""
         pass
     describe = wrap(describe, ['text'])
 
 ##########################################################################
 ################### Tracker: Bloodpool Section ###########################
 ##########################################################################
+    #feeding
+    def feed(self, irc, msg, args, hours, diff):
+        """Parameters: <hours> <difficulty> (location)
+        Feed on the weak and unwilling"""
+        pass
+    
+    feed = wrap(feed, 'int', 'int', optional('text'))
+    
+    #bloodpool storage
+    def getbp(self, irc, msg, args):
+        """Obtains character's current bloodpool"""
+        pass
+    
+    getbp = wrap(getbp)
+    
+    #STORYTELLER FUNCTION
+    def forcefeed(self, irc, msg, args, nick, blood):
+        """Storyteller Function used to give blood.
+        Parameters: <nick> <amount>"""
+        pass
+    
+    forcefeed = wrap(forcefeed, ['admin', 'text', 'int']
+
 
 ##########################################################################
 ################### Tracker: Willpower Section ###########################
