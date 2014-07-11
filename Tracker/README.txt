@@ -9,11 +9,24 @@ Example: !newchar David 9 7
 [IRC] BOT has registered a new player: David
 [IRC] BOT has set Generation at 9 (bloodpool 14), with Willpower: 7
 
-A character can be deleted from the database by an admin (ST).
-!delchar <IRC NICK>
+A character can be declared inactive from the database by an admin (ST).
+This can be used for players that disappear or go on vacation for an extended period of time.
+This freezes their BP, WP and XP, disabling any alterations to it by Caine's hand.
+!deactivate <IRC NICK>
 
+Example: !deactivate David
+[IRC] BOT has deactivated the character: David.
+
+A player can resume a character by having an ST re-activate them with !activate
+
+Example: !activate David
+[IRC] BOT has activated the character: David.
+
+Lastly, a character can be purged from the database by !delchar.
 Example: !delchar David
-[IRC] BOT has deleted David from the database.
+[IRC] BOT has purged the character: David.
+
+
 ------------------------------------
 To set the Character's description:
 !setdesc
@@ -28,7 +41,7 @@ To recall description and links:
 
 Example:
 [IRC] David writes sexy python code
-[IRC] Link: <url>
+[IRC] Link: http://placekitten.com/g/200/300
 
 ------------------------------------
 To recall bloodpool
@@ -40,19 +53,23 @@ To feed, players will need to occasionally hunt for blood using the !feed comman
 Example: !feed 3 7 Marshall Park
 [IRC] David has hunted for 3 hours and gained 4 BP by hunting.
 
-Storytellers can give blood to players by passing a !forcefeed command.
-This is too allow for emergency feeding and any other means.
-!forcefeed <IRC NICK> <bp>
-
-Example: !forcefeed David 4
-[IRC] David has been given 4 bp. Total bp is: 9/14
-
 Characters will often need to spend blood to activate various disciplines and powers.
-    This is accomplished by !bp.
+This is accomplished by !bp.
 !bp <num> (optional text)
 
 Example: !bp 1 Potence
 [IRC] David spent 1 bp.
+
+Storytellers can give blood to players by passing a !forcefeed command.
+This is too allow for emergency feeding and any other means.
+!forcefeed <IRC NICK> <bp> (reason)
+
+Example: !forcefeed David 4 
+[IRC] David has been given 4 bp. Total bp is now: 11/14
+
+Storytellers can remove blood for various reasons by using !removebp
+Example: !removebp David 4
+[IRC] Removed 4 bp from David. Total bp is now: 7/14
 
 ------------------------------------
 To recall willpower
@@ -67,7 +84,7 @@ Example: !wp
 
 Storytellers can give back willpower through In-Character actions or
     if a player mistakenly spends willpower by !forcewill
-!forcewill <IRC NICK> <willpower>
+!forcewill <IRC NICK> <willpower> (reason)
 Example: !forcewill David 3
 [IRC] David has restored 3 willpower.
 
@@ -78,7 +95,7 @@ To recall eXPerience
 
 To gain experience, players are asked to request it weekly.
 This maxes at 3 for heavy interaction, 2 for moderate, 1 for you logged in and had a casual scene.
-!requestxp {1,2,3}
+!requestxp {1,2,3} (reason)
 Example: !requestxp 3
 [IRC] David has requested 3 XP for the week.
 
@@ -89,14 +106,28 @@ Example: !spendxp David 4 increasing Brawl
 [IRC] David spent 4 XP
 
 Storytellers can give bonus XP with !bonusxp
-!bonusxp <IRC NICK> <XP>
+!bonusxp <IRC NICK> <XP> (reason)
 Example: !bonusxp David 5
 [IRC] David was awarded with 5 bonus XP.
 
 Storytellers can also penalize or if for some reason need to subtract XP from a player
-!subtractxp <IRC NICK> <XP>
+!subtractxp <IRC NICK> <XP> (reason)
 Example: !subtractxp David 5
 [IRC] David has had 5 XP subtracted.
+
+Storytellers can view all requestxp with !listxp. If there was a reason with the requestxp, it is displayed.
+Example: !listxp
+[IRC] David has requested 3 XP for the week. Reason: "I played a lot this week, ran an event."
+[IRC] Joe has requested 2 XP for the week. Reason: <none>
+[IRC] Jamie has requested 1 XP for the week. Reason: "I barely got a chance to play, had a casual scene or two."
+
+Storytellers can approved all XP requests with !approveall
+Example: !approveall
+[IRC] All character XP requests approved successfully.
+
+Storytellers can remove a request with !removerequest
+Example: !removerequest David
+[IRC] David's request for XP 3 has been removed.
 ------------------------------------
 
 

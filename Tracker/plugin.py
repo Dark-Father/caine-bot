@@ -55,7 +55,7 @@ class Tracker(callbacks.Plugin):
 
 
 ##############################################################################
-################### Tracker: Storyteller Functions ###########################
+################### Tracker: Character Creation ##############################
 ##############################################################################
     #private function for ops(aka storytellers) this will initialize a record.
     # this inserts the default record into the database
@@ -70,6 +70,16 @@ class Tracker(callbacks.Plugin):
         irc.reply(character)
 
     newchar = wrap(newchar, ['admin', 'something', 'int', 'int'])
+    
+    def activate(self, irc, msg, args, name):
+        """Activate a character marked as inactive"""
+        pass
+    activate = wrap(activate, ['admin', 'something'])
+    
+    def deactivate(self, irc, msg, args, name):
+        """Mark a character as inactive, freezes assets."""
+        pass
+    deactivate = wrap(deactivate, ['admin', 'something'])    
 
     #private function for ops(aka storyteller) to delete a character entirely.
     def delchar(self, irc, msg, args, name):
@@ -114,7 +124,7 @@ class Tracker(callbacks.Plugin):
         Feed on the weak and unwilling"""
         pass
     
-    feed = wrap(feed, 'int', 'int', optional('text'))
+    feed = wrap(feed, ['int', 'int', optional('text')])
     
     #bloodpool storage
     def getbp(self, irc, msg, args):
@@ -129,15 +139,88 @@ class Tracker(callbacks.Plugin):
         Parameters: <nick> <amount>"""
         pass
     
-    forcefeed = wrap(forcefeed, ['admin', 'text', 'int']
+    forcefeed = wrap(forcefeed, ['admin', 'text', 'int'])
+    
+    def removebp(self, irc, msg, args, nick, blood):
+        """Storyteller Function used to remove blood.
+        Parameters: <nick> <amount> (reason)"""
+        pass
+    removebp = wrap(removebp, ['admin', 'text', 'int'])
 
 
 ##########################################################################
 ################### Tracker: Willpower Section ###########################
 ##########################################################################
+    def wp(self, irc, msg, args, reason):
+        """Spends one willpower point."""
+        pass    
+    wp = wrap(wp, [optional('text')])
+    
+    def getwp(self, irc, msg, args):
+        """Obtain current willpower amount"""
+        pass
+    getwp = wrap(getwp)
+    
+    def forcewp(self, irc, msg, args, nick, willpower):
+        """Storyteller Function used to give willpower.
+        Parameters: <nick> <amount>"""
+        pass
+    forcewp = wrap(forcewp, ['admin', 'text', 'int'])
 
 ###########################################################################
 ################### Tracker: Experience Section ###########################
 ###########################################################################
+    def getxp(self, irc, msg, args):
+        """Obtains current amount of XP, both available and total gained"""
+        pass
+    getxp = wrap(getxp)
+    
+    def requestxp(self, irc, msg, args, amount, reason):
+        """Request XP for gameplay
+        If called again in the same week, amount is replaced with the new value"""
+        pass    
+    requestxp = wrap(requestxp, ['int', optional('text')])
+    
+    def bonusxp(self, irc, msg, args, nick, amount, reason):
+        """Storyteller Function used to give bonus XP.
+        Parameters: <nick> <amount> (reason)"""
+        pass
+    bonusxp = wrap(bonusxp, ['admin', 'int', optional('text')])
+    
+    def listxp(self, irc, msg, args):
+        """Storyteller Function to list XP and reasons from all characters that requested"""
+        pass
+    listxp = wrap(listxp)
+    
+    def subtractxp(self, irc, msg, args, nick, amount, reason):
+        """Storyteller Function to remove XP from a character
+        Parameters: <nick> <amount> (reason)"""
+        pass
+    subtractxp = wrap(subtractxp, ['admin', 'int', optional('text')])
+    
+    def approveall(self, irc, msg, args):
+        """Approves all request XP for characters."""
+        pass
+    approveall = wrap(approveall, ['admin', 'something'])
+    
+    def removerequest(self, irc, msg, args, nick, reason):
+        """Remove a requested character's experience"""
+        pass
+    
+    removerequest = wrap(removerequest, ['admin', 'something'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Class = Tracker
