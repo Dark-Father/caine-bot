@@ -66,6 +66,7 @@ class Roller(callbacks.Plugin):
         for s in outcome:
             if int(s) == 10:
                 spec += 1
+                outcome[int(s)] = ircutils.mircColor(outcome[int(s)],9)
             if int(s) >= difficulty:
                 success += 1
             elif int(s) == 1:
@@ -88,7 +89,7 @@ class Roller(callbacks.Plugin):
             irc.reply(ircutils.mircColor(dicepool,6))
         elif 0 < success < spec:
             dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
-            irc.reply(ircutils.mircColor(dicepool,6))
+            irc.reply(dicepool)
 
     roll = wrap(roll, ['int', 'int', optional('text')])
 
