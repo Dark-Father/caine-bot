@@ -78,17 +78,17 @@ class Roller(callbacks.Plugin):
         if success == 0 and ones > 0:
             success = "BOTCH  >:D"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(dicepool)
+            irc.reply(ircutils.mircColor(dicepool,6))
         elif 0 < success <= ones:
             success = "Failure"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(dicepool)
+            irc.reply(ircutils.mircColor(dicepool,6))
         elif 0 < success == spec:
             dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(dicepool)
+            irc.reply(ircutils.mircColor(dicepool,6))
         elif 0 < success < spec:
             dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
-            irc.reply(dicepool)
+            irc.reply(ircutils.mircColor(dicepool,6))
 
     roll = wrap(roll, ['int', 'int', optional('text')])
 
