@@ -55,6 +55,7 @@ class Roller(callbacks.Plugin):
         ones = 0
         spec = 0
         difficulty = int(difficulty)
+        fancy_outcome = []
 
         # CALCULATIONS
         #build roll outcome list
@@ -66,29 +67,33 @@ class Roller(callbacks.Plugin):
         for s in outcome:
             if int(s) == 10:
                 spec += 1
-                outcome[int(s)] = ircutils.mircColor(outcome[int(s)],9)
-            if int(s) >= difficulty:
+                fancy_outcome.append(ircutils.mircColor(s,10))
+            elif int(s) >= difficulty:
                 success += 1
+                fancy_outcome.append(ircutils.mircColor(s,12))
             elif int(s) == 1:
                 spec -= 1
                 ones += 1
+                fancy_outcome.append(ircutils.mircColor(s,4))
+            else:
+                fancy_outcome.append(ircutils.mircColor(s,6))
 
         spec += success
 
         # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
         if success == 0 and ones > 0:
             success = "BOTCH  >:D"
-            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(ircutils.mircColor(dicepool,6))
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+            irc.reply(dicepool)
         elif 0 < success <= ones:
             success = "Failure"
-            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(ircutils.mircColor(dicepool,6))
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+            irc.reply(dicepool)
         elif 0 < success == spec:
-            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(outcome), success, str(difficulty))
-            irc.reply(ircutils.mircColor(dicepool,6))
+            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+            irc.reply(dicepool)
         elif 0 < success < spec:
-            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(outcome), success, spec, str(difficulty))
+            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(fancy_outcome), success, spec, str(difficulty))
             irc.reply(dicepool)
 
     roll = wrap(roll, ['int', 'int', optional('text')])
