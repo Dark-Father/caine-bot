@@ -78,7 +78,7 @@ class Weather(callbacks.Plugin):
             conditions[0].upper() + conditions[1:].lower(),
             int(round(itemperature)), "F",
             int(round(mtemperature)), "C")
-        irc.reply(report)
+        irc.reply(ircutils.mircColor(report,6))
 
     weather = wrap(weather)
 
