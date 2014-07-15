@@ -37,7 +37,7 @@ import random
 
 class Roller(callbacks.Plugin):
     """rolls dice for Vampire the Masquerade"""
-    threaded = True
+    threaded = False
 
     def __init__(self, irc):
         #pass
