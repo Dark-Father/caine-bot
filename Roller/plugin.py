@@ -65,27 +65,27 @@ class Roller(callbacks.Plugin):
 
         #compare outcome list with successes, 1s and 10s rolled and calc accordingly
         for s in outcome:
-            if int(s) == 10:
-                spec += 1
-            
-            if int(s) >= difficulty:
+            if int(s) >= difficulty: #success evaluation
                 success += 1
                 if int(s) == 10:
+                    spec += 1
                     fancy_outcome.append(ircutils.mircColor(s,10))
                 else:
                     fancy_outcome.append(ircutils.mircColor(s,12))
             
-            elif int(s) == 1:
+            elif int(s) == 1: #math for ones
                 spec -= 1
+                success -= 1
                 ones += 1
                 fancy_outcome.append(ircutils.mircColor(s,4))
+            
             else:
                 fancy_outcome.append(ircutils.mircColor(s,6))
 
         spec += success
 
         # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
-        if success == 0 and ones > 0:
+        if success <= 0 and ones > 0:
             success = "BOTCH  >:D"
             dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
             irc.reply(dicepool)
