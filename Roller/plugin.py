@@ -67,6 +67,7 @@ class Roller(callbacks.Plugin):
         for s in outcome:
             if int(s) == 10:
                 spec += 1
+                success += 1
                 fancy_outcome.append(ircutils.mircColor(s,10))
             elif int(s) >= difficulty:
                 success += 1
