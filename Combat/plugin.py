@@ -27,18 +27,48 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
-
 import supybot.utils as utils
 from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
-
+import random
 
 class Combat(callbacks.Plugin):
-    """Add the help for "@plugin help Combat" here
-    This should describe *how* to use this plugin."""
+    """This plugin manages combat for Vampire the Masquerade system.
+    It is called with !combat start. This also pings #stchambers with a message that combat has started in #channel.
+    It logs players that cast !inits to join the current round. This is redone with !newround.
+    Combat ends with !combat end"""
     threaded = True
+
+    def combat(self, irc, msg, args, powered):
+        """Start combat with: !combat start 
+        End combat with: !combat end"""
+        if powered = "start":
+            irc.reply("Combat Started")
+        elif powered = "end":
+            irc.reply("Combat Ended")
+        else:
+            irc.error("Start or end combat with: !combat start|end")
+    
+    def inits(self, irc, msg, args, inits, reason):
+        """Adds player to combat roster"""
+        rolled = str(random.randrange(1, 11)) #python counts from 0
+        inits += rolled
+    
+    def showinits(self, irc, msg, args):
+        """Lists the current combat roster"""
+        pass
+    
+    def newround(self, irc, msg, args):
+        """Clears roster of all characters. Players will need to rejoin with !inits"""
+        pass
+    
+    
+
+
+
+
 
 
 Class = Combat
