@@ -49,55 +49,55 @@ class Roller(callbacks.Plugin):
         !roll <number of dice> <difficulty> (optional action text)"""
 
         #VARIABLES
-        sides = 11 #11 due to python counting from 0
-        outcome = []
-        success = 0
-        ones = 0
-        spec = 0
+        success = ones = spec = total = 0
         difficulty = int(difficulty)
+        outcome = []
         fancy_outcome = []
 
         # CALCULATIONS
         #build roll outcome list
-        for x in range(num):
-            rolled = str(random.randrange(1, sides))
-            outcome.append(rolled)
+        #for x in range(num):
+        #    rolled = str(random.randrange(1, sides))
+        #    outcome.append(rolled)
 
         #compare outcome list with successes, 1s and 10s rolled and calc accordingly
-        for s in outcome:
-            if int(s) >= difficulty: #success evaluation
+        for s in range(1,num):
+            die = random.randint(1, 10)
+            
+            if die >= difficulty: #success evaluation
                 success += 1
-                if int(s) == 10:
+                if die == 10:
                     spec += 1
                     fancy_outcome.append(ircutils.mircColor(s,10))
                 else:
                     fancy_outcome.append(ircutils.mircColor(s,12))
             
-            elif int(s) == 1: #math for ones
-                spec -= 1
-                success -= 1
+            elif die == 1: #math for ones
                 ones += 1
                 fancy_outcome.append(ircutils.mircColor(s,4))
             
             else:
                 fancy_outcome.append(ircutils.mircColor(s,6))
-
-        spec += success
+        
+        #the aftermath
+        total = success - ones
+        if ones == 0:
+            spec += total
 
         # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
-        if success <= 0 and ones > 0:
-            success = "BOTCH  >:D"
-            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+        if success == 0 and ones > 0:
+            total = "BOTCH  >:D"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
             irc.reply(dicepool)
-        elif 0 < success <= ones:
-            success = "Failure"
-            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+        elif 0 <= success <= ones:
+            total = "Failure"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
             irc.reply(dicepool)
-        elif 0 < success == spec:
-            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(fancy_outcome), success, str(difficulty))
+        elif 0 < total == spec:
+            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
             irc.reply(dicepool)
-        elif 0 < success < spec:
-            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(fancy_outcome), success, spec, str(difficulty))
+        elif 0 < total < spec:
+            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(fancy_outcome), total, spec, str(difficulty))
             irc.reply(dicepool)
 
     roll = wrap(roll, ['int', 'int', optional('text')])
