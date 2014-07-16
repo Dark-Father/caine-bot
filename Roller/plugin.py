@@ -81,8 +81,10 @@ class Roller(callbacks.Plugin):
         
         #the aftermath
         total = success - ones
-        if ones == 0:
-            spec += total
+        if spec > ones:
+            spec = spec - ones + total
+        else:
+            spec = total
 
         # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
         if success == 0 and ones > 0:
