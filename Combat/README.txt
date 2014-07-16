@@ -22,12 +22,13 @@ To end the !combat loop, Caine looks for !combat end to exit the loop.
 
 Full Example:
 !combat start
-[IRC] <Caine> Combat Round started. Round 1. Declare !inits to join combat.
+[IRC] <Caine> Combat Round started. Round 1. Declare !inits to join combat. Declare!bp spends now.
 
 David: !inits 5
 [IRC] <Caine> David rolled initative: 7
 
-An Storyteller (op) can add an additional text to the end of their liner to add NPCs easily to the combat list
+An Storyteller (op) can add an additional text to the end of their liner to add NPCs easily to the combat list.
+Storytellers should also be able to add additionial characters to the init list.
 ST: !inits 3 villian
 [IRC] <Caine> Villian rolled initative: 9
 
@@ -40,7 +41,7 @@ Once the round is completed, the Storyteller casts !newround. This clears the cu
 and players must once again cast !inits to join the new round of combat
 
 ST: !newround
-[IRC] <Caine> New Round Started. Round 2. Declare !inits to join combat.
+[IRC] <Caine> New Round Started. Round 2. Declare !inits to join combat. Declare !bp spends now.
 
 Once combat has completed, the ST clears the current combat list with !combat end. It also displays the total number of rounds fought.
 !combat end
