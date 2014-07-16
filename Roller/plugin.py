@@ -68,16 +68,16 @@ class Roller(callbacks.Plugin):
                 success += 1
                 if die == 10:
                     spec += 1
-                    fancy_outcome.append(ircutils.mircColor(s,10))
+                    fancy_outcome.append(ircutils.mircColor(die,10))
                 else:
-                    fancy_outcome.append(ircutils.mircColor(s,12))
+                    fancy_outcome.append(ircutils.mircColor(die,12))
             
             elif die == 1: #math for ones
                 ones += 1
-                fancy_outcome.append(ircutils.mircColor(s,4))
+                fancy_outcome.append(ircutils.mircColor(die,4))
             
             else:
-                fancy_outcome.append(ircutils.mircColor(s,6))
+                fancy_outcome.append(ircutils.mircColor(die,6))
         
         #the aftermath
         total = success - ones
