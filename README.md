@@ -9,11 +9,12 @@ IRC plugin for supybot
 <h3>Working:</h3>
 <ul type="square">
 	<li>dice rolling</li>
+	<li>weather system</li>
 </ul>
 
 <h3>In Progress:</h3>
 <ul type="square">
-	<li>weather system - working, need to make fancy</li>
+	<li>combat system tracking</li>
 	<li>character management, tracking:</li>
 	<ul type="square">
 		<li>description, setting description, setting links</li>
@@ -25,6 +26,6 @@ IRC plugin for supybot
 
 <h3>Planned:</h3>
 <ul type="square">
-	<li>combat system tracking</li>
+	
 </ul>
 
