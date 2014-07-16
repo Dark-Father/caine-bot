@@ -61,7 +61,7 @@ class Roller(callbacks.Plugin):
         #    outcome.append(rolled)
 
         #compare outcome list with successes, 1s and 10s rolled and calc accordingly
-        for s in range(1,num):
+        for s in range(num):
             die = random.randint(1, 10)
             
             if die >= difficulty: #success evaluation
