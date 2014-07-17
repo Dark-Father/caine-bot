@@ -40,6 +40,11 @@ class Combat(callbacks.Plugin):
     It logs players that cast !inits to join the current round. This is redone with !newround.
     Combat ends with !combat end"""
     threaded = True
+    
+    
+    def __init__(self, irc):
+        self.__parent = super(Combat, self)
+        self.__parent.__init__(irc)
 
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
