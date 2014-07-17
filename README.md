@@ -22,6 +22,9 @@ IRC plugin for supybot
 		<li>bloodpool, feeding, spending, administration</li>
 		<li>experience, requesting, spending, administration</li>
 	</ul>
+	<li>Extras: stfree</li>
+
+
 </ul>		
 
 <h3>Planned:</h3>
