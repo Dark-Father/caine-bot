@@ -49,7 +49,6 @@ class Extras(callbacks.Plugin):
         """takes no arguments
         Checks #stchambers to see if occupied."""
         channel = "#stchambers"
-        bot = 'DEVEL'
         diff = []
 
         users = list(irc.state.channels[channel].users)
