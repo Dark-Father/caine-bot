@@ -1,4 +1,4 @@
-###
+# ##
 # Copyright (c) 2014, David Rickman
 # All rights reserved.
 #
@@ -39,21 +39,28 @@ class Extras(callbacks.Plugin):
     """Extra commands to make life easier and better for players and Storytellers.
     https://github.com/freedomischaos/caine-bot/blob/master/Extras/README.txt"""
     threaded = True
-    
-    
+
     def __init__(self, irc):
         #pass
         self.__parent = super(Extras, self)
         self.__parent.__init__(irc)
 
     def stfree(self, irc, msg, args):
-        """"takes no arguments
+        """takes no arguments
         Checks #stchambers to see if occupied."""
         channel = "#stchambers"
-        nicklist = list(irc.state.channels[channel].users)
-        utils.sortBy(str.lower, nicklist)
-        irc.reply(utils.str.commaAndify(nicklist))
-    
+        bot = 'DEVEL'
+        diff = []
+
+        users = list(irc.state.channels[channel].users)
+        st = list(irc.state.channels[channel].ops)
+        diff = list(set(users) - set(st))
+        
+        if diff:
+            irc.reply("Chambers is CLOSED. Join #stchambers later...")
+        else:
+            irc.reply("Chambers is OPEN. Join #stchambers now!")
+
     stfree = wrap(stfree)
 
 
