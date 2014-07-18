@@ -66,8 +66,8 @@ class Characters(callbacks.Plugin):
         wp = int(wp)
         name = str(name)
         irc.reply('what what')
-
-        irc.reply("Added %s, with %s bp and %s wp" % (str(name), str(bp), str(wp)))
+        created = "Added %s, with %s bp and %s wp" % (name, str(bp), str(wp))
+        irc.reply(created)
     createchar = wrap(createchar, ['text', 'int', 'int'])
 
     def ctest(self, irc, msg, args):
