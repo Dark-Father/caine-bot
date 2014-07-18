@@ -56,9 +56,9 @@ class Extras(callbacks.Plugin):
         diff = list(set(users) - set(st))
         
         if diff:
-            irc.reply("Chambers is BUSY. Join #stchambers later...")
+            irc.reply(ircutils.mircColor("Chambers is BUSY. Join #stchambers later...", 4))
         else:
-            irc.reply("Chambers is OPEN. Join #stchambers now!")
+            irc.reply(ircutils.mircColor("Chambers is OPEN. Join #stchambers now!", 3))
 
     stfree = wrap(stfree)
 
