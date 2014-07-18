@@ -57,7 +57,7 @@ class Extras(callbacks.Plugin):
         diff = list(set(users) - set(st))
         
         if diff:
-            irc.reply("Chambers is CLOSED. Join #stchambers later...")
+            irc.reply("Chambers is BUSY. Join #stchambers later...")
         else:
             irc.reply("Chambers is OPEN. Join #stchambers now!")
 
