@@ -35,20 +35,12 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
 import sqlite3
-conn = sqlite3.connect('test.db')
+conn = sqlite3.connect('characters.db')
 c = conn.cursor()
-c.execute("DROP TABLE IF EXISTS Chars")
-c.execute("CREATE TABLE Chars(Id INT, name TEXT, bp INT)")
-c.execute("INSERT INTO Chars VALUES(1,'Jean', 30)")
-c.execute("INSERT INTO Chars VALUES(2,'Isaac', 30)")
 
 
-conn.commit()
 class Characters(callbacks.Plugin):
-    """Add the help for "@plugin help Characters" here
-    This should describe *how* to use this plugin."""
-
-
+    """Character administration and tracking for Vampire: The Masquerade"""
 
 
     def __init__(self, irc):
@@ -56,6 +48,27 @@ class Characters(callbacks.Plugin):
         self.__parent = super(Characters, self)
         self.__parent.__init__(irc)
 
+    def startdb(self, irc, msg, args):
+        # Here we initialise the database table. Integer Primary Key makes the Id automatically increment. Then we set
+        # up BP, WP, XP, Descriptions, a link, how much xp they requested, if they have already fed that day, and damage
+        #  tracking. Exciting!
+        c.execute("CREATE TABLE IF NOT EXISTS Chars(Id INTEGER PRIMARY KEY, Name TEXT, BP_Cur INT, "
+                  "BP_Max INT, WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT, Link TEXT, "
+                  "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT)")
+        irc.reply('Database Created.')
+    startdb = wrap(startdb)
+
+    def createchar(self, irc, msg, args, name, bp, wp):
+        """<name> <bp> <wp>
+
+        """
+        bp = int(bp)
+        wp = int(wp)
+        name = str(name)
+        irc.reply('what what')
+
+        irc.reply("Added %s, with %s bp and %s wp" % (str(name), str(bp), str(wp)))
+    createchar = wrap(createchar, ['text', 'int', 'int'])
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
