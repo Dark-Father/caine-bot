@@ -36,9 +36,25 @@ import supybot.callbacks as callbacks
 
 
 class Extras(callbacks.Plugin):
-    """Add the help for "@plugin help Extras" here
-    This should describe *how* to use this plugin."""
+    """Extra commands to make life easier and better for players and Storytellers.
+    https://github.com/freedomischaos/caine-bot/blob/master/Extras/README.txt"""
     threaded = True
+    
+    
+    def __init__(self, irc):
+        #pass
+        self.__parent = super(Extras, self)
+        self.__parent.__init__(irc)
+
+    def stfree(self, irc, msg, args):
+        """"takes no arguments
+        Checks #stchambers to see if occupied."""
+        channel = "#stchambers"
+        nicklist = list(irc.state.channels[channel].users)
+        utils.sortBy(str.lower, nicklist)
+        irc.reply(utils.str.commaAndify(nicklist))
+    
+    stfree = wrap(stfree)
 
 
 Class = Extras
