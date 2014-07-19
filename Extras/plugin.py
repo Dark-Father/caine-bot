@@ -54,8 +54,11 @@ class Extras(callbacks.Plugin):
         users = list(irc.state.channels[channel].users)
         st = list(irc.state.channels[channel].ops)
         diff = list(set(users) - set(st))
-        
-        if diff:
+
+        if not st:
+            abbra = "There are no Storytellers logged in. Try again later."
+            irc.reply(abbra)
+        elif diff:
             abbra = "Chambers is " + ircutils.mircColor("BUSY", 4) + ". Occupied by: " + ircutils.bold(", ".join(diff))
             irc.reply(abbra)
         else:
