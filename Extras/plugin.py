@@ -56,7 +56,7 @@ class Extras(callbacks.Plugin):
         diff = list(set(users) - set(st))
         
         if diff:
-            abbra = "Chambers is " + ircutils.mircColor("BUSY", 4) + ". Join #stchambers later..."
+            abbra = "Chambers is " + ircutils.mircColor("BUSY", 4) + ". Occupied by: " + ircutils.bold(", ".join(diff))
             irc.reply(abbra)
         else:
             abbra = "Chambers is " + ircutils.mircColor("OPEN", 3) + ". Join #stchambers now!"
