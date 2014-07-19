@@ -1,4 +1,4 @@
-###
+# ##
 # Copyright (c) 2014, Liam Burke
 # All rights reserved.
 #
@@ -35,8 +35,7 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
 import sqlite3
-conn = sqlite3.connect('characters.db')
-c = conn.cursor()
+
 
 
 class Characters(callbacks.Plugin):
@@ -49,26 +48,98 @@ class Characters(callbacks.Plugin):
         self.__parent.__init__(irc)
 
     def startdb(self, irc, msg, args):
-        # Here we initialise the database table. Integer Primary Key makes the Id automatically increment. Then we set
-        # up BP, WP, XP, Descriptions, a link, how much xp they requested, if they have already fed that day, and damage
-        #  tracking. Exciting!
-        c.execute("CREATE TABLE IF NOT EXISTS Chars(Id INTEGER PRIMARY KEY, Name TEXT, BP_Cur INT, "
+        """takes no arguments
+
+        Creates the Database for the first time. If it exists, it will not overwrite it.
+        """
+        try:
+            #best practice here. Rather than have the database constantly open, we open it specifically for each command
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            c.execute("CREATE TABLE IF NOT EXISTS Chars(Id INTEGER PRIMARY KEY, Name TEXT, BP_Cur INT, "
                   "BP_Max INT, WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT, Link TEXT, "
-                  "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT)")
+                  "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT, NPC INT)")
+            conn.commit()
+        except sqlite3.Error:
+            #if we pick up and error we simply roll the database back.
+            conn.rollback()
+        finally:
+            #lastly we close the database connection.
+            conn.close()
+        # still need to work out an if statement as to whether or not this happens
         irc.reply('Database Created.')
+
     startdb = wrap(startdb)
 
     def createchar(self, irc, msg, args, name, bp, wp):
         """<name> <bp> <wp>
 
+        Adds the Character with <name> to the bot, with a maximum <bp> and maximum <wp>
         """
         bp = int(bp)
         wp = int(wp)
-        name = str(name)
-        irc.reply('what what')
-        created = "Added %s, with %s bp and %s wp" % (name, str(bp), str(wp))
-        irc.reply(created)
-    createchar = wrap(createchar, ['text', 'int', 'int'])
+        match = 0
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            #first we need to check if that name is taken
+            c.execute("SELECT Name FROM Chars")
+            rows = c.fetchall()
+            #will need to add something to check wp isn't above 10
+
+            for row in rows:
+                str(row)
+                if name == row[0]:
+                    match = 1
+                else:
+                    match = 0
+
+            if match == 0:
+                c.execute("INSERT INTO Chars(Name, BP_Cur, Bp_Max, WP_Cur, WP_Max, XP_Cur, XP_Total, Description, Link,"
+                          " Requested_XP, "
+                          "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (name,
+                                                                                                 bp, bp, wp, wp, 0, 0,
+                          'No Description Set', 'No Link Set', 0, 0, 0, 0, 0))
+                created = "Added %s with %s bp and %s wp" % (name, bp, wp)
+                irc.reply(created)
+
+            else:
+                irc.reply("Error: Name already taken")
+            conn.commit()
+        except sqlite3.Error:
+            conn.rollback()
+        finally:
+            conn.close()
+
+    createchar = wrap(createchar, ['anything', 'int', 'int'])
+
+    def delchar(self, irc, msg, args, name):
+        """<name>
+
+        Removes the Character <name> from the bot.
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            name = str(name)
+            # check if that name is even in the bot
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            checkname = c.fetchall()
+
+            if len(checkname) != 0:
+                c.execute("DELETE FROM Chars WHERE Name = ?", (name,))
+                conn.commit()
+                thereply = "Character %s removed from bot" % name
+                irc.reply(thereply)
+            else:
+                irc.reply("No such Character")
+        finally:
+            conn.close()
+
+    delchar = wrap(delchar, ['anything'])
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
@@ -80,13 +151,25 @@ class Characters(callbacks.Plugin):
             irc.reply(row)
 
 
-
     ctest = wrap(ctest)
 
+    def secondtest(self, irc, msg, args):
+        """no arguments
+        """
+        irc.reply("secondtest reporting in")
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars")
+            rows = c.fetchall()
+        finally:
+            conn.close
 
+        for row in rows:
+            str(row)
+            irc.reply(row[0])
 
-    
-        
 
 Class = Characters
 
