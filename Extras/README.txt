@@ -10,4 +10,4 @@ Open Example: !stfree
 [IRC] <Caine> Chambers is free. Join #stchambers
 
 Closed Example: !stfree
-[IRC] <Caine> I'm batin'. Go Away.
+[IRC] <Caine> Chambers is BUSY. Join #stchambers later...
