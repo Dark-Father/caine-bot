@@ -10,6 +10,7 @@ IRC plugin for supybot
 <ul type="square">
 	<li>dice rolling</li>
 	<li>weather system</li>
+	<li>Extras: stfree</li>
 </ul>
 
 <h3>In Progress:</h3>
@@ -22,13 +23,13 @@ IRC plugin for supybot
 		<li>bloodpool, feeding, spending, administration</li>
 		<li>experience, requesting, spending, administration</li>
 	</ul>
-	<li>Extras: stfree</li>
+
 
 
 </ul>		
 
 <h3>Planned:</h3>
 <ul type="square">
-	
+	<li>webapp for further character management</li>
 </ul>
 
