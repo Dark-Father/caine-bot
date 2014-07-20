@@ -45,31 +45,37 @@ class Combat(callbacks.Plugin):
     def __init__(self, irc):
         self.__parent = super(Combat, self)
         self.__parent.__init__(irc)
-        self.powered = "end"
         self.channel_lock = False
         self.roundlist = {}
+        self.round_count= 1
 
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
         End combat with: !combat end"""
-        if self.channel_lock == True:
-            irc.error("Combat is already started. Join combat with !inits <dex+wits>", Raise=True)
+
+    #error checking at the start, later power up the combat cycle.
+        if self.channel_lock is True and powered != "end":
+            irc.error("Combat is already started. Join combat with: !inits <dex+wits>", Raise=True)
+        elif powered == "end" and self.round_count == 1:
+            irc.error("Start or end combat with: !combat start|end", Raise=True)
         elif powered == "start":
-            self.powered = "start"
             self.channel_lock = True
-            irc.reply("Combat Started")
+            irc.reply("Combat Started. Round %s" % str(self.round_count), prefixNick=False)
         elif powered == "end":
-            self.powered = "end"
+            irc.reply("Combat Ended. Total number of rounds: %s" % str(self.round_count), prefixNick=False)
+            #reset for new combat
             self.channel_lock = False
-            irc.reply("Combat Ended")
+            self.roundlist = {}
+            self.round_count = 1
         else:
             irc.error("Start or end combat with: !combat start|end", Raise=True)
     combat = wrap(combat, [optional('text')])
     
     def inits(self, irc, msg, args, inits, NPC):
         """Roll to join combat. Use !inits <dex+wits>.
-        To add NPCs, cast: !inits <value> (NPC)."""
-        if self.powered == "start":
+        To add NPCs, cast: !inits <value> (NPC Name)."""
+        if self.channel_lock is True:
+            #roll init
             rolled = inits + random.randint(1, 10)
 
             #check to see if NPC was passed.
@@ -78,24 +84,34 @@ class Combat(callbacks.Plugin):
             else:
                 character = NPC
 
+            #join it in the round list dictionary, output reply.
             self.roundlist[character] = rolled
-
-            joined = str(character) + " rolled a: " + str(rolled)
-            irc.reply(joined)
-            #irc.reply(character)
-            #irc.reply(rolled)
+            joined = "%s rolled a: %s" % (character, str(rolled))
+            irc.reply(joined, prefixNick=False)
         else:
-            irc.reply("Combat is not started. Start combat with: !combat start")
+            irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
     inits = wrap(inits, ['int', optional('text')])
     
     def showinits(self, irc, msg, args):
         """Lists the current combat roster"""
-        irc.reply(self.roundlist)
+    #FUTURE: We need to save this generated dictionary and find a way to more quickly display it.
+    # It can be potentially interrupted as it displays the list.
+        if self.roundlist:
+            irc.reply("#####################", prefixNick=False)
+            for key, value in sorted(self.roundlist.iteritems(), key=lambda (k, v): (v, k)):
+                nextchar = "%s: %s" % (key, value)
+                irc.reply(nextchar, prefixNick=False)
+            irc.reply("#####################", prefixNick=False)
+        else:
+            irc.error("No characters in round. Join combat with: !inits", Raise=True)
+
     showinits = wrap(showinits)
 
     def newround(self, irc, msg, args):
-        """Clears roster of all characters. Players will need to rejoin with !inits"""
-        pass
+        """Clears roster of all characters. Players will join new round with: !inits"""
+        self.round_count += 1
+        self.roundlist = {}
+        irc.reply("New Round Start. Round: %s" % str(self.round_count), prefixNick=False)
     newround = wrap(newround)
     
 
