@@ -25,16 +25,16 @@ Full Example:
 [IRC] <Caine> Combat Round started. Round 1. Declare !inits to join combat. Declare!bp spends now.
 
 David: !inits 5
-[IRC] <Caine> David rolled initative: 7
+[IRC] <Caine> David rolled initiative: 7
 
 An Storyteller (op) can add an additional text to the end of their liner to add NPCs easily to the combat list.
-Storytellers should also be able to add additionial characters to the init list.
-ST: !inits 3 villian
-[IRC] <Caine> Villian rolled initative: 9
+Storytellers should also be able to add additional characters to the init list.
+ST: !inits 3 villain
+[IRC] <Caine> Villain rolled initiative: 9
 
 Once everyone has joined, the Storyteller casts !showinits and Caine gives back a looped reply of all characters in round.
 ST: !showinits
-[IRC] <Caine> Villian: 9
+[IRC] <Caine> Villain: 9
 [IRC] <Caine> David: 7
 
 Once the round is completed, the Storyteller casts !newround. This clears the current round, displays the new round number
@@ -65,7 +65,7 @@ Example:
 Example:
 !showinits
 
-[IRC] <Caine> Mage #2 Inits : 12
+[IRC] <Caine> Mage #1 Inits : 12
 [IRC] <Caine> Kevin Inits   : 8
 [IRC] <Caine> David Inits   : 6
 

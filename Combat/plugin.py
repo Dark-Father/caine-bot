@@ -45,30 +45,58 @@ class Combat(callbacks.Plugin):
     def __init__(self, irc):
         self.__parent = super(Combat, self)
         self.__parent.__init__(irc)
+        self.powered = "end"
+        self.channel_lock = False
+        self.roundlist = {}
 
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
         End combat with: !combat end"""
-        if powered = "start":
+        if self.channel_lock == True:
+            irc.error("Combat is already started. Join combat with !inits <dex+wits>")
+        elif powered == "start":
+            self.powered = "start"
+            self.channel_lock = True
             irc.reply("Combat Started")
-        elif powered = "end":
+        elif powered == "end":
+            self.powered = "end"
+            self.channel_lock = False
             irc.reply("Combat Ended")
         else:
-            irc.error("Start or end combat with: !combat start|end")
+            irc.error("Start or end combat with: !combat start|end", Raise=True)
+    combat = wrap(combat, [optional('text')])
     
-    def inits(self, irc, msg, args, inits, reason):
-        """Adds player to combat roster"""
-        rolled = str(random.randrange(1, 11)) #python counts from 0
-        inits += rolled
+    def inits(self, irc, msg, args, inits, NPC):
+        """Roll to join combat. Use !inits <dex+wits>.
+        To add NPCs, cast: !inits <value> (NPC)."""
+        if self.powered == "start":
+            rolled = inits + random.randint(1, 10)
+
+            #check to see if NPC was passed.
+            if not NPC:
+                character = msg.nick
+            else:
+                character = NPC
+
+            self.roundlist[character] = rolled
+
+            joined = str(character) + " rolled a: " + str(rolled)
+            irc.reply(joined)
+            #irc.reply(character)
+            #irc.reply(rolled)
+        else:
+            irc.reply("Combat is not started. Start combat with: !combat start")
+    inits = wrap(inits, ['int', optional('text')])
     
     def showinits(self, irc, msg, args):
         """Lists the current combat roster"""
-        pass
-    
+        irc.reply(self.roundlist)
+    showinits = wrap(showinits)
+
     def newround(self, irc, msg, args):
         """Clears roster of all characters. Players will need to rejoin with !inits"""
         pass
-    
+    newround = wrap(newround)
     
 
 
