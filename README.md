@@ -11,11 +11,12 @@ IRC plugin for supybot
 	<li>dice rolling</li>
 	<li>weather system</li>
 	<li>Extras: stfree</li>
+	<li>combat system tracking - needs light polishing</li>
 </ul>
 
 <h3>In Progress:</h3>
 <ul type="square">
-	<li>combat system tracking</li>
+
 	<li>character management, tracking:</li>
 	<ul type="square">
 		<li>description, setting description, setting links</li>
