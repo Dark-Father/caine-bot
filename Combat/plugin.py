@@ -53,7 +53,7 @@ class Combat(callbacks.Plugin):
         """Start combat with: !combat start 
         End combat with: !combat end"""
         if self.channel_lock == True:
-            irc.error("Combat is already started. Join combat with !inits <dex+wits>")
+            irc.error("Combat is already started. Join combat with !inits <dex+wits>", Raise=True)
         elif powered == "start":
             self.powered = "start"
             self.channel_lock = True
