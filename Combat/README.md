@@ -1,18 +1,12 @@
-###############
 #Combat Plugin#
-###############
 
 The Combat plugin for Caine on Elysia-online.org. Track, manage and execute combat.
 
+#Initiative and Starting Combat
 
-################################
-#Initiative and Starting Combat#
-################################
+So first we concentrate on inits rolls, tracking those inits, displaying those inits, and managing combat rounds.
 
-So first we concentrate on inits rolls, tracking those inits, displaying those inits, and managing combat rounds. 
-Then we have a few functions for starting combat that automatically creates a new round in the room, and summons an ST.
--------------
-Combat Management:
+#Combat Management:
 
 Using "!combat start", opens a combat tracker with round 1. 
 Characters then cast !inits to add themselves to the round.
@@ -46,8 +40,6 @@ ST: !newround
 Once combat has completed, the ST clears the current combat list with !combat end. It also displays the total number of rounds fought.
 !combat end
 [IRC] <Caine> Combat has ended. Total rounds: 2
-
--------------
 
 !inits <Dexterity+wits> [Alternative Name]
 * Use [Alternative Name] to add NPCs to the inititative list.
