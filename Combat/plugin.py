@@ -55,7 +55,7 @@ class Combat(callbacks.Plugin):
 
     #error checking at the start, later power up the combat cycle.
         if self.channel_lock is True and powered != "end":
-            irc.error("Combat is already started. Join combat with: !inits <dex+wits>", Raise=True)
+            irc.error("Combat is already started. Join combat: !inits <dex+wits>. Declare !bp spends now.", Raise=True)
         elif powered == "end" and self.round_count == 1:
             irc.error("Start or end combat with: !combat start|end", Raise=True)
         elif powered == "start":
@@ -111,7 +111,8 @@ class Combat(callbacks.Plugin):
         """Clears roster of all characters. Players will join new round with: !inits"""
         self.round_count += 1
         self.roundlist = {}
-        irc.reply("New Round Start. Round: %s" % str(self.round_count), prefixNick=False)
+        irc.reply("New Round Start. Round: %s. To join: !inits. Declare !bp spends now."
+                  % str(self.round_count), prefixNick=False)
     newround = wrap(newround)
     
 
