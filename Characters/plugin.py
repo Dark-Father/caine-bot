@@ -68,9 +68,6 @@ class Characters(callbacks.Plugin):
         finally:
             #lastly we close the database connection.
             conn.close()
-
-
-
     startdb = wrap(startdb)
 
     def createchar(self, irc, msg, args, name, bp, wp):
@@ -154,7 +151,6 @@ class Characters(callbacks.Plugin):
             else:
                 irc.reply("No such Character")
 
-
         finally:
             conn.close()
 
@@ -173,21 +169,19 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name, Description FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name, Description, Link FROM Chars WHERE Name = ?", (name,))
             desc = c.fetchone()
             created = desc[0] + " " + desc[1]
-            created = ircutils.mircColor(created,6)
+            created = ircutils.mircColor(created, 6)
             irc.reply(created, prefixNick=False)
+            created2nd = ircutils.mircColor(Link, 6)
+            irc.reply(created2nd, prefixNick=False)
 
         except sqlite3.Error:
             conn.rollback()
             irc.reply("Error: Name not found.")
-
         finally:
             conn.close()
-
-
-
     describe = wrap(describe, ['anything'])
 
     def ctest(self, irc, msg, args):
@@ -214,7 +208,6 @@ class Characters(callbacks.Plugin):
             rows = c.fetchall()
         finally:
             conn.close
-
         for row in rows:
             str(row)
             irc.reply(row[0])
