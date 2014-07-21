@@ -98,7 +98,7 @@ class Combat(callbacks.Plugin):
     # It can be potentially interrupted as it displays the list.
         if self.roundlist:
             irc.reply("#####################", prefixNick=False)
-            for key, value in sorted(self.roundlist.iteritems(), key=lambda (k, v): (v, k)):
+            for key, value in sorted(self.roundlist.iteritems(), key=lambda (k, v): (v, k), reverse=True):
                 nextchar = "%s: %s" % (key, value)
                 irc.reply(nextchar, prefixNick=False)
             irc.reply("#####################", prefixNick=False)
