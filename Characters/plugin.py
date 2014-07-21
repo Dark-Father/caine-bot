@@ -56,18 +56,20 @@ class Characters(callbacks.Plugin):
             #best practice here. Rather than have the database constantly open, we open it specifically for each command
             conn = sqlite3.connect('characters.db')
             c = conn.cursor()
-            c.execute("CREATE TABLE IF NOT EXISTS Chars(Id INTEGER PRIMARY KEY, Name TEXT, BP_Cur INT, "
+            c.execute("CREATE TABLE Chars(Id INTEGER PRIMARY KEY, Name TEXT unique, BP_Cur INT, "
                   "BP_Max INT, WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT, Link TEXT, "
                   "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT, NPC INT)")
             conn.commit()
+            irc.reply('Database Created.')
         except sqlite3.Error:
-            #if we pick up and error we simply roll the database back.
+            #if we pick up an error (i.e the database already exists)
+            irc.reply('Error: Database already exists')
             conn.rollback()
         finally:
             #lastly we close the database connection.
             conn.close()
-        # still need to work out an if statement as to whether or not this happens
-        irc.reply('Database Created.')
+
+
 
     startdb = wrap(startdb)
 
@@ -78,38 +80,23 @@ class Characters(callbacks.Plugin):
         """
         bp = int(bp)
         wp = int(wp)
-        match = 0
 
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            #first we need to check if that name is taken
-            c.execute("SELECT Name FROM Chars")
-            rows = c.fetchall()
-            #will need to add something to check wp isn't above 10
-
-            for row in rows:
-                str(row)
-                if name == row[0]:
-                    match = 1
-                else:
-                    match = 0
-
-            if match == 0:
-                c.execute("INSERT INTO Chars(Name, BP_Cur, Bp_Max, WP_Cur, WP_Max, XP_Cur, XP_Total, Description, Link,"
-                          " Requested_XP, "
-                          "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (name,
+            c.execute("INSERT INTO Chars(Name, BP_Cur, Bp_Max, WP_Cur, WP_Max, XP_Cur, XP_Total, Description, Link,"
+                      " Requested_XP, "
+                      "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (name,
                                                                                                  bp, bp, wp, wp, 0, 0,
-                          'No Description Set', 'No Link Set', 0, 0, 0, 0, 0))
-                created = "Added %s with %s bp and %s wp" % (name, bp, wp)
-                irc.reply(created)
-
-            else:
-                irc.reply("Error: Name already taken")
+                      'No Description Set', 'No Link Set', 0, 0, 0, 0, 0))
+            created = "Added %s with %s bp and %s wp" % (name, bp, wp)
+            irc.reply(created)
             conn.commit()
-        except sqlite3.Error:
+        except sqlite3.IntegrityError:
+            # as Name is unique, it throws an integrity error if you try a name thats already in there.
             conn.rollback()
+            irc.reply("Error: Name already taken")
         finally:
             conn.close()
 
@@ -135,11 +122,73 @@ class Characters(callbacks.Plugin):
                 thereply = "Character %s removed from bot" % name
                 irc.reply(thereply)
             else:
-                irc.reply("No such Character")
+                raise sqlite3.Error(name)
+        #sqlite doesnt seem to throw an exception if you try to delete something that isn't there.
+        except sqlite3.Error as e:
+            conn.rollback()
+            created = "Error: %s not found." % e
+            irc.reply(created)
+
         finally:
             conn.close()
 
     delchar = wrap(delchar, ['anything'])
+
+    def setdesc(self, irc, msg, args, description):
+        """<description>
+
+        Sets a description for your character
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchall()
+
+            if len(checkname) != 0:
+                c.execute("UPDATE Chars SET Description = ? WHERE Name = ?", (description, nicks))
+                conn.commit()
+                irc.reply("Description Set")
+            else:
+                irc.reply("No such Character")
+
+
+        finally:
+            conn.close()
+
+
+
+    setdesc = wrap(setdesc, ['text'])
+
+    def describe(self, irc, msg, args, name):
+        """<name>
+
+        Gets the description of the named character
+        """
+
+        name = str(name)
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name, Description FROM Chars WHERE Name = ?", (name,))
+            desc = c.fetchone()
+            created = desc[0] + " " + desc[1]
+            created = ircutils.mircColor(created,6)
+            irc.reply(created, prefixNick=False)
+
+        except sqlite3.Error:
+            conn.rollback()
+            irc.reply("Error: Name not found.")
+
+        finally:
+            conn.close()
+
+
+
+    describe = wrap(describe, ['anything'])
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
