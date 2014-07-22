@@ -33,7 +33,6 @@ import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import random
-import collections
 
 
 class Combat(callbacks.Plugin):
