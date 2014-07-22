@@ -1,4 +1,5 @@
-Plugin to remember character descriptions, bloodpool, willpower and eXPerience by inserting them into a mysql database.
+Plugin to remember character descriptions, bloodpool, willpower and eXPerience
+ by inserting them into a database.
 This is for future possible web-based management.
 ------------------------------------
 To begin, an admin (generally storyteller) must register the new player.
