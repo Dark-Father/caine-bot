@@ -62,36 +62,50 @@ class Combat(callbacks.Plugin):
 
     combatinit = wrap(combatinit, ['admin'])
 
+    def test(self, irc, msg, args):
+        currentChannel = msg.args[0]
+        irc.reply(currentChannel)
+        irc.reply(self.channel_lock)
+        irc.reply("Combat started?: %s" % self.channel_lock[currentChannel])
+        irc.reply(self.roundlist)
+        irc.reply(self.round_count)
+
+    test = wrap(test)
+
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
         End combat with: !combat end"""
         currentChannel = msg.args[0]
 
         #error checking at the start, later power up the combat cycle.
-        if self.channel_lock.get(currentChannel, default=None) is True and powered != "end":
-            irc.error("Combat is already started. Join combat: !inits <dex+wits>. Declare !bp spends now.", Raise=True)
+        if self.channel_lock[currentChannel] is True and powered != "end":
+            irc.error("Combat is already started. Join combat: !inits. Declare !bp spends now.", Raise=True)
         elif powered == "end" and self.round_count[currentChannel] == 1:
             irc.error("Start or end combat with: !combat start|end", Raise=True)
         elif powered == "start":
             self.channel_lock[currentChannel] = True
-            irc.reply("Combat Started. Round %s" % str(self.round_count[currentChannel]), prefixNick=False)
+            irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
+                      % str(self.round_count[currentChannel]), prefixNick=False)
+            self.round_count[currentChannel] = 1
         elif powered == "end":
-            irc.reply("Combat Ended. Total number of rounds: %s" % str(self.round_count[currentChannel]), prefixNick=False)
+            irc.reply("Combat Ended. Total number of rounds: %s"
+                      % str(self.round_count[currentChannel]), prefixNick=False)
             #reset for new combat
             self.channel_lock[currentChannel] = False
             self.roundlist.pop(currentChannel, None)
-            self.round_count[currentChannel] = 1
+            self.round_count.pop(currentChannel, None)
         else:
             irc.error("Start or end combat with: !combat start|end", Raise=True)
 
     combat = wrap(combat, [optional('text')])
 
-    def inits(self, irc, msg, args, inits, NPC):
+    def inits(self, irc, msg, args, inits, NPC, initiative=None):
         """Roll to join combat. Use !inits <dex+wits>.
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
 
-        if self.channel_lock is True:
+        if self.channel_lock[currentChannel] is True:
+            
             #roll init
             rolled = inits + random.randint(1, 10)
 
@@ -102,10 +116,12 @@ class Combat(callbacks.Plugin):
                 character = NPC
 
             #join it in the round list dictionary, output reply.
-            charadd = (character, rolled)
-            self.roundlist[currentChannel] = charadd
-            joined = "%s rolled a: %s" % (character, self.roundlist[currentChannel].get(character))
-            irc.reply(joined, prefixNick=False)
+            initadd = (character, rolled)
+            self.roundlist[currentChannel][initiative] = initadd
+            joined = "%s rolled a: %s" % (character, self.roundlist[currentChannel])
+            irc.reply(charadd)
+            irc.reply(joined)
+            #irc.reply(joined, prefixNick=False)
         else:
             irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
 
