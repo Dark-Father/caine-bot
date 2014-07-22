@@ -4,7 +4,7 @@ This module is for Administrating and Tracking characters in Vampire : The Masqu
 
 ###!startdb 
 
-This command creates the Database. Only works if there is not one already. It takes no arguments
+This command creates the Database. Only works if there is not one already. It takes no arguments.
 
 Example:
 
@@ -12,9 +12,7 @@ Example:
 <BOT> Database Created.
 
 
-@@@@@@@@@@@@@@@
-@ !createchar @
-@@@@@@@@@@@@@@@
+###!createchar 
 
 This command creates new Characters in the bot. It takes the arguments <name> <bp> <wp>. Name should be letters only. BP and WP, numbers only. If the name you want to use is already in the bot it will give an error.
 
@@ -24,9 +22,7 @@ Example:
 <BOT> Added Doug with 10bp and 6 wp
 
 
-@@@@@@@@@@@@@@
-@  !delchar  @
-@@@@@@@@@@@@@@
+###!delchar  
 
 This command deletes a character from the bot. It takes the argument <name>. 
 
@@ -36,19 +32,35 @@ Example:
 <Bot> Character Doug removed from bot.
 
 
-!setdesc
+###!setdesc
 
-Sets the description
+This command allows a player to set the description for their Character.
+
+Example:
+
+!setdesc is a large man with rippling and sexy muscles. (app6)
+<BOT> Description Set.
 
 
-!setlink
-Sets a link
+###!setlink
+
+This command allows a player to set a link in the description for their Character.
+
+Example:
+
+!setlink http://tinyurl.com/ABC
+<BOT> Link Set.
 
 
-!describe
+###!describe
 
-Describes a player
+This command describes the named Character in the channel or PM.
 
+Example:
+
+!describe Doug
+<BOT> Doug is a large man with rippling and sexy muscles. (app6)
+<BOT> http://tinyurl.com/ABC
 
 
 !getbp
