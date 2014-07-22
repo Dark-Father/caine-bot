@@ -1,13 +1,8 @@
-################################################
-# Character Administration and Tracking Module #
-################################################
+# Character Administration and Tracking Module 
 
 This module is for Administrating and Tracking characters in Vampire : The Masquerade. 
 
-
-@@@@@@@@@@@@
-@ !startdb @
-@@@@@@@@@@@@
+###!startdb 
 
 This command creates the Database. Only works if there is not one already. It takes no arguments
 
