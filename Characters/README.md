@@ -58,9 +58,9 @@ This command describes the named Character in the channel or PM.
 
 Example:
 
-!describe Doug
-BOT > Doug is a large man with rippling and sexy muscles. (app6)
-BOT > http://tinyurl.com/ABC
+!describe Doug  
+<BOT>Doug is a large man with rippling and sexy muscles. (app6)  
+<BOT>http://tinyurl.com/ABC
 
 
 !getbp
