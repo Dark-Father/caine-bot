@@ -347,6 +347,12 @@ class Characters(callbacks.Plugin):
             conn.close()
     getcharbp = wrap(getcharbp, ['anything'])
 
+    def feed(self, irc, msg, args, dice, diff):
+        """<no. of dice> <difficulty>
+
+        Feed
+        """
+
     def getwp(self,irc, msg, args):
         """takes no arguments
         Check your characters WP

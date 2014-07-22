@@ -8,8 +8,8 @@ This command creates the Database. Only works if there is not one already. It ta
 
 Example:
 
-`!startdb
-`<BOT> Database Created.
+!startdb
+**[BOT]** Database Created.
 
 
 ###!createchar 
@@ -18,8 +18,8 @@ This command creates new Characters in the bot. It takes the arguments <name> <b
 
 Example:
 
-`!createchar Doug 10 6
-`<BOT> Added Doug with 10bp and 6 wp
+!createchar Doug 10 6
+**[BOT]** Added Doug with 10 B{ and 6 WP
 
 
 ###!delchar  
@@ -28,8 +28,8 @@ This command deletes a character from the bot. It takes the argument <name>.
 
 Example:
 
-`!delchar Doug
-`<Bot> Character Doug removed from bot.
+!delchar Doug
+**[BOT]** Character Doug removed from bot.
 
 
 ###!setdesc
@@ -38,8 +38,8 @@ This command allows a player to set the description for their Character.
 
 Example:
 
-`!setdesc is a large man with rippling and sexy muscles. (app6)
-`<BOT> Description Set.
+!setdesc is a large man with rippling and sexy muscles. (app6)
+**[BOT] Description Set.
 
 
 ###!setlink
@@ -49,7 +49,7 @@ This command allows a player to set a link in the description for their Characte
 Example:
 
 !setlink http://tinyurl.com/ABC
-
+**[BOT] Link Set.
 
 
 ###!describe
@@ -59,13 +59,18 @@ This command describes the named Character in the channel or PM.
 Example:
 
 !describe Doug   
-[BOT]Doug is a large man with rippling and sexy muscles. (app6)  
-[BOT]http://tinyurl.com/ABC
+**[BOT]** Doug is a large man with rippling and sexy muscles. (app6)  
+**[BOT]** http://tinyurl.com/ABC
 
+
+###!getbp
+
+This command shows the user his Characters current bloodpool. Returns the message in a private notice.
+
+Example:
 
 !getbp
-
-Gets BP level for player
+**[BOT]** Available Blood (20/20)
 
 
 !feed
