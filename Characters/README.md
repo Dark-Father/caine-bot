@@ -48,8 +48,8 @@ This command allows a player to set a link in the description for their Characte
 
 Example:
 
-`!setlink http://tinyurl.com/ABC
-`<BOT> Link Set.
+!setlink http://tinyurl.com/ABC
+
 
 
 ###!describe
@@ -59,8 +59,8 @@ This command describes the named Character in the channel or PM.
 Example:
 
 !describe Doug
-`<BOT> Doug is a large man with rippling and sexy muscles. (app6)
-`<BOT> http://tinyurl.com/ABC
+BOT > Doug is a large man with rippling and sexy muscles. (app6)
+BOT > http://tinyurl.com/ABC
 
 
 !getbp
