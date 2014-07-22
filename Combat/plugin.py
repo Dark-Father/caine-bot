@@ -56,7 +56,7 @@ class Combat(callbacks.Plugin):
         for chan in list(irc.state.channels):
             self.channel_lock[chan] = False
             self.round_count[chan] = 1
-            self.roundlist = {}
+            self.roundlist[chan] = {}
             irc.reply("Resetting Lock, Round Counter and Initiative Lists for: %s" % chan)
         irc.reply(self.channel_lock)  #debug
 
@@ -92,8 +92,8 @@ class Combat(callbacks.Plugin):
                       % str(self.round_count[currentChannel]), prefixNick=False)
             #reset for new combat
             self.channel_lock[currentChannel] = False
-            self.roundlist.pop(currentChannel, None)
-            self.round_count.pop(currentChannel, None)
+            self.roundlist[currentChannel].clear()
+            self.round_count[currentChannel] = 1
         else:
             irc.error("Start or end combat with: !combat start|end", Raise=True)
 
@@ -104,24 +104,25 @@ class Combat(callbacks.Plugin):
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
 
+        #create the nested dictionary if it doesn't exist
+        if not self.roundlist[currentChannel]:
+            self.roundlist[currentChannel] = {}
+
+        #put the initiative list together
         if self.channel_lock[currentChannel] is True:
-            
             #roll init
             rolled = inits + random.randint(1, 10)
 
-            #check to see if NPC was passed.
+            #check to see if a NPC was passed.
             if not NPC:
                 character = msg.nick
             else:
                 character = NPC
 
             #join it in the round list dictionary, output reply.
-            initadd = (character, rolled)
-            self.roundlist[currentChannel][initiative] = initadd
-            joined = "%s rolled a: %s" % (character, self.roundlist[currentChannel])
-            irc.reply(charadd)
-            irc.reply(joined)
-            #irc.reply(joined, prefixNick=False)
+            self.roundlist[currentChannel][character] = rolled
+            joined = "%s rolled a: %s" % (character, self.roundlist[currentChannel][character])
+            irc.reply(joined, prefixNick=False)
         else:
             irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
 
@@ -145,9 +146,9 @@ class Combat(callbacks.Plugin):
         currentChannel = msg.args[0]
 
         self.round_count[currentChannel] += 1
-        self.roundlist.pop(currentChannel, None)
+        self.roundlist[currentChannel].clear()
         irc.reply("Round: %s Started. . To join: !inits. Declare !bp spends now."
-                  % str(self.round_count), prefixNick=False)
+                  % str(self.round_count[currentChannel]), prefixNick=False)
 
     newround = wrap(newround)
 
