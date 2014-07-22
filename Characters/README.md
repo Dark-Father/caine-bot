@@ -137,3 +137,19 @@ approve the XP list
 !modify request
 
 st modify an xp request
+
+!getdmg
+
+get a players damage level
+
+!giveagg
+
+give agg damage
+
+!givenorm
+
+give normal damage
+
+!npc
+
+set character to NPC

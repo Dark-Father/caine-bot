@@ -208,6 +208,7 @@ class Characters(callbacks.Plugin):
             conn.close()
     describe = wrap(describe, ['anything'])
 
+
     def getbp(self,irc, msg, args):
         """takes no arguments
         Check your characters BP
@@ -282,7 +283,7 @@ class Characters(callbacks.Plugin):
                     irc.reply(chanreply)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 else:
-                    irc.reply("You don't have that much blood")
+                    irc.reply("You don't enough blood")
 
             else:
                 irc.reply("No such Character")
@@ -345,6 +346,178 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
     getcharbp = wrap(getcharbp, ['anything'])
+
+    def getwp(self,irc, msg, args):
+        """takes no arguments
+        Check your characters WP
+        """
+
+        nicks = msg.nick
+        sep = '_'
+        nicks = nicks.split(sep, 1)[0]
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
+                wp = c.fetchone()
+                wpcur = str(wp[0])
+                wpmax = str(wp[1])
+                created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+            else:
+                irc.reply("Error: Name not found.")
+
+        except sqlite3.Error:
+            conn.rollback()
+            irc.reply("Error: No such Character")
+
+        finally:
+            conn.close()
+    getwp = wrap(getwp)
+
+    def wp(self, irc, msg, args, wpnum, reason):
+        """(optional number) (optional text)
+
+        Spend 1 WP without any arguments, or as many WP as you define with an optional reason
+        """
+
+        nicks = msg.nick
+        sep = '_'
+        nicks = nicks.split(sep, 1)[0]
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT count(*) FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
+                wp = c.fetchone()
+                if wpnum is None and wp[0] != 0:
+                    wpcur = int(wp[0]) - 1
+                    c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, nicks))
+                    conn.commit()
+                    wpcur = str(wpcur)
+                    wpmax = str(wp[1])
+                    created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
+                    chanreply = "spent 1 WP"
+                    irc.reply(chanreply)
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif wpnum <= wp[1] and wpnum <= wp[0] and wpnum is not None:
+                    wpcur = int(wp[0]) - wpnum
+                    c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, nicks))
+                    conn.commit()
+                    wpcur = str(wpcur)
+                    wpmax = str(wp[1])
+                    created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
+                    chanreply = "spent %s WP" % wpnum
+                    irc.reply(chanreply)
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                else:
+                    irc.reply("You don't have enough willpower")
+
+            else:
+                irc.reply("No such Character")
+
+        finally:
+            conn.close()
+
+
+    wp = wrap(wp, [optional('int'), optional('text')])
+
+    def setwp(self, irc, msg, args, name, newwp):
+        """<name> <newwp>
+
+        Set Character <name>'s current wp to <newwp>
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                 c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (newwp, name))
+                 conn.commit()
+                 created = "New WP set to %s for %s" % (newwp, name)
+                 irc.reply(created, private=True)
+
+            else:
+                irc.reply("Error: Name not found.")
+
+        finally:
+            conn.close()
+
+
+    setwp = wrap(setwp, ['anything', 'int'])
+
+    def getcharwp(self, irc, msg, args, name):
+        """<name>
+
+        Get the Characters willpower
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (name,))
+                wp = c.fetchone()
+                wpcur = str(wp[0])
+                wpmax = str(wp[1])
+                created = "Available Willpower for %s (" % name
+                created = str(created) + wpcur + "/" + wpmax + ")"
+                irc.reply(created, private=True)
+
+        finally:
+            conn.close()
+    getcharwp = wrap(getcharwp, ['anything'])
+
+    def getxp(self,irc, msg, args):
+        """takes no arguments
+        Check your characters XP
+        """
+
+        nicks = msg.nick
+        sep = '_'
+        nicks = nicks.split(sep, 1)[0]
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (nicks,))
+                xp = c.fetchone()
+                xpcur = str(xp[0])
+                xpmax = str(xp[1])
+                created = "Available Experience (" + xpcur + "/" + xpmax + ")"
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+            else:
+                irc.reply("Error: Name not found.")
+
+        except sqlite3.Error:
+            conn.rollback()
+            irc.reply("Error: No such Character")
+
+        finally:
+            conn.close()
+    getxp = wrap(getxp)
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
