@@ -31,6 +31,7 @@
 import supybot.utils as utils
 from supybot.commands import *
 import supybot.plugins as plugins
+import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
@@ -154,9 +155,31 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
 
+    def setlink(self, irc, msg, args, url):
+        """<url>
+
+        Sets a link for your character description
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchall()
+
+            if len(checkname) != 0:
+                c.execute("UPDATE Chars SET Link = ? WHERE Name = ?", (url, nicks))
+                conn.commit()
+                irc.reply("Link Set")
+            else:
+                irc.reply("No such Character")
+
+        finally:
+            conn.close()
 
 
-    setdesc = wrap(setdesc, ['text'])
+    setlink = wrap(setlink, ['text'])
 
     def describe(self, irc, msg, args, name):
         """<name>
@@ -174,7 +197,8 @@ class Characters(callbacks.Plugin):
             created = desc[0] + " " + desc[1]
             created = ircutils.mircColor(created, 6)
             irc.reply(created, prefixNick=False)
-            created2nd = ircutils.mircColor(Link, 6)
+            created2nd = "Link: " + desc[2]
+            created2nd = ircutils.mircColor(created2nd, 6)
             irc.reply(created2nd, prefixNick=False)
 
         except sqlite3.Error:
@@ -183,6 +207,144 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
     describe = wrap(describe, ['anything'])
+
+    def getbp(self,irc, msg, args):
+        """takes no arguments
+        Check your characters BP
+        """
+
+        nicks = msg.nick
+        sep = '_'
+        nicks = nicks.split(sep, 1)[0]
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
+                bp = c.fetchone()
+                bpcur = str(bp[0])
+                bpmax = str(bp[1])
+                created = "Available Blood (" + bpcur + "/" + bpmax + ")"
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+            else:
+                irc.reply("Error: Name not found.")
+
+        except sqlite3.Error:
+            conn.rollback()
+            irc.reply("Error: No such Character")
+
+        finally:
+            conn.close()
+    getbp = wrap(getbp)
+
+    def bp(self, irc, msg, args, bpnum, reason):
+        """(optional number) (optional text)
+
+        Spend 1 BP without any arguments, or as many BP as you define with an optional reason
+        """
+
+        nicks = msg.nick
+        sep = '_'
+        nicks = nicks.split(sep, 1)[0]
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT count(*) FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
+                bp = c.fetchone()
+                if bpnum is None and bp[0] != 0:
+                    bpcur = int(bp[0]) - 1
+                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
+                    conn.commit()
+                    bpcur = str(bpcur)
+                    bpmax = str(bp[1])
+                    created = "Available Blood (" + bpcur + "/" + bpmax + ")"
+                    chanreply = "spent 1 BP"
+                    irc.reply(chanreply)
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif bpnum <= bp[1] and bpnum <= bp[0] and bpnum is not None:
+                    bpcur = int(bp[0]) - bpnum
+                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
+                    conn.commit()
+                    bpcur = str(bpcur)
+                    bpmax = str(bp[1])
+                    created = "Available Blood (" + bpcur + "/" + bpmax + ")"
+                    chanreply = "spent %s BP" % bpnum
+                    irc.reply(chanreply)
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                else:
+                    irc.reply("You don't have that much blood")
+
+            else:
+                irc.reply("No such Character")
+
+        finally:
+            conn.close()
+
+
+    bp = wrap(bp, [optional('int'), optional('text')])
+
+    def setbp(self, irc, msg, args, name, newbp):
+        """<name> <newbp>
+
+        Set Character <name>'s current bp to <newbp>
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                 c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (newbp, name))
+                 conn.commit()
+                 created = "New BP set to %s for %s" % (newbp, name)
+                 irc.reply(created, private=True)
+
+            else:
+                irc.reply("Error: Name not found.")
+
+        finally:
+            conn.close()
+
+
+    setbp = wrap(setbp, ['anything', 'int'])
+
+    def getcharbp(self, irc, msg, args, name):
+        """<name>
+
+        Get the Characters bloodpool
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (name,))
+                bp = c.fetchone()
+                bpcur = str(bp[0])
+                bpmax = str(bp[1])
+                created = "Available Blood for %s (" % name
+                created = str(created) + bpcur + "/" + bpmax + ")"
+                irc.reply(created, private=True)
+
+        finally:
+            conn.close()
+    getcharbp = wrap(getcharbp, ['anything'])
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
