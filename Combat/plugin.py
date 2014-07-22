@@ -57,8 +57,6 @@ class Combat(callbacks.Plugin):
             self.round_count[chan] = 1
             self.roundlist[chan] = {}
             irc.reply("Resetting Lock, Round Counter and Initiative Lists for: %s" % chan)
-        irc.reply(self.channel_lock)  #debug
-
     combatinit = wrap(combatinit, ['admin'])
 
     def combat(self, irc, msg, args, powered):
@@ -97,11 +95,10 @@ class Combat(callbacks.Plugin):
             else:
                 irc.error(startstop, Raise=True)
         except KeyError:
-            irc.error("break", Raise=True)
-
+            irc.error(startstop, Raise=True)
     combat = wrap(combat, [optional('text')])
 
-    def inits(self, irc, msg, args, inits, NPC, initiative=None):
+    def inits(self, irc, msg, args, inits, NPC):
         """Roll to join combat. Use !inits <dex+wits>.
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
@@ -123,7 +120,6 @@ class Combat(callbacks.Plugin):
             irc.reply(joined, prefixNick=False)
         else:
             irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
-
     inits = wrap(inits, ['int', optional('text')])
 
     def showinits(self, irc, msg, args):
@@ -136,8 +132,6 @@ class Combat(callbacks.Plugin):
         diff = list(set(users) - set(users_joined))
         diff.pop(diff.index(bot))
 
-
-
         if roster:
             irc.reply("#####################", prefixNick=False)
             for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
@@ -146,10 +140,8 @@ class Combat(callbacks.Plugin):
             irc.reply("#####################", prefixNick=False)
             if diff:
                 irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff))
-
         else:
             irc.error("No characters in round. Join combat with: !inits", Raise=True)
-
     showinits = wrap(showinits)
 
     def newround(self, irc, msg, args):
@@ -160,7 +152,6 @@ class Combat(callbacks.Plugin):
         self.roundlist[currentChannel].clear()
         irc.reply("Round: %s Started. . To join: !inits. Declare !bp spends now."
                   % str(self.round_count[currentChannel]), prefixNick=False)
-
     newround = wrap(newround)
 
 
