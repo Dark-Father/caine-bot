@@ -62,12 +62,8 @@ class Combat(callbacks.Plugin):
     combatinit = wrap(combatinit, ['admin'])
 
     def test(self, irc, msg, args):
-        currentChannel = msg.args[0]
-        irc.reply(currentChannel)
-        irc.reply(self.channel_lock)
-        irc.reply("Combat started?: %s" % self.channel_lock[currentChannel])
-        irc.reply(self.roundlist)
-        irc.reply(self.round_count)
+        irc.reply(irc.nick)
+        irc.reply(type(irc.nick))
 
     test = wrap(test)
 
@@ -75,30 +71,39 @@ class Combat(callbacks.Plugin):
         """Start combat with: !combat start 
         End combat with: !combat end"""
         currentChannel = msg.args[0]
+        already = "Combat is already started. Join combat: !inits. Declare !bp spends now."
+        startstop = "Start or end combat with: !combat start|end"
 
-        #error checking at the start, later power up the combat cycle.
-        if self.channel_lock[currentChannel] is True and powered != "end":
-            irc.error("Combat is already started. Join combat: !inits. Declare !bp spends now.", Raise=True)
-        elif powered == "end" and self.round_count[currentChannel] == 1:
-            irc.error("Start or end combat with: !combat start|end", Raise=True)
-        elif powered == "start":
-            self.channel_lock[currentChannel] = True
-            self.round_count[currentChannel] = 1
-            #create the nested dictionary if it doesn't exist
-            if not self.roundlist[currentChannel]:
-                self.roundlist[currentChannel] = {}
+        try:
+            #error checking at the start, later power up the combat cycle.
+            if powered == "start":
+                #create the nested dictionaries if it doesn't exist
+                if currentChannel not in self.channel_lock:
+                    self.channel_lock[currentChannel] = True
+                elif self.channel_lock[currentChannel] is False:
+                    self.channel_lock[currentChannel] = True
+                elif self.channel_lock[currentChannel] is True:
+                    irc.error(already, Raise=True)
 
-            irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
-                      % str(self.round_count[currentChannel]), prefixNick=False)
-        elif powered == "end":
-            irc.reply("Combat Ended. Total number of rounds: %s"
-                      % str(self.round_count[currentChannel]), prefixNick=False)
-            #reset for new combat
-            self.channel_lock[currentChannel] = False
-            self.roundlist[currentChannel].clear()
-            self.round_count[currentChannel] = 1
-        else:
-            irc.error("Start or end combat with: !combat start|end", Raise=True)
+                if currentChannel not in self.round_count:
+                    self.round_count[currentChannel] = 1
+                if currentChannel not in self.roundlist:
+                    self.roundlist[currentChannel] = {}
+                irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
+                          % str(self.round_count[currentChannel]), prefixNick=False)
+
+            elif powered == "end" and currentChannel in self.channel_lock:
+                irc.reply("Combat Ended. Total number of rounds: %s"
+                          % str(self.round_count[currentChannel]), prefixNick=False)
+                #reset for new combat
+                self.channel_lock[currentChannel] = False
+                self.roundlist[currentChannel].clear()
+                self.round_count[currentChannel] = 1
+
+            else:
+                irc.error(startstop, Raise=True)
+        except KeyError:
+            irc.error("break", Raise=True)
 
     combat = wrap(combat, [optional('text')])
 
@@ -130,11 +135,13 @@ class Combat(callbacks.Plugin):
     def showinits(self, irc, msg, args):
         """Lists the current combat roster"""
         currentChannel = msg.args[0]
-
+        bot = irc.nick
         roster = self.roundlist[currentChannel]
-        users = list(irc.state.channels[channel].users)
-        st = list(irc.state.channels[channel].ops)
-        diff = list(set(users) - set(st))
+        users = list(irc.state.channels[currentChannel].users)
+        users_joined = list(self.roundlist[currentChannel])
+        diff = list(set(users) - set(users_joined))
+        diff.pop(diff.index(bot))
+
 
 
         if roster:
@@ -143,6 +150,8 @@ class Combat(callbacks.Plugin):
                 nextchar = " %s: %s" % (key, value)
                 irc.reply(nextchar, prefixNick=False)
             irc.reply("#####################", prefixNick=False)
+            if diff:
+                irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff))
 
         else:
             irc.error("No characters in round. Join combat with: !inits", Raise=True)
