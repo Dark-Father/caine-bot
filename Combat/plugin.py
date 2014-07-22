@@ -42,7 +42,6 @@ class Combat(callbacks.Plugin):
     Combat ends with !combat end"""
     threaded = True
 
-
     def __init__(self, irc):
         self.__parent = super(Combat, self)
         self.__parent.__init__(irc)
