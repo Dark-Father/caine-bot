@@ -83,9 +83,13 @@ class Combat(callbacks.Plugin):
             irc.error("Start or end combat with: !combat start|end", Raise=True)
         elif powered == "start":
             self.channel_lock[currentChannel] = True
+            self.round_count[currentChannel] = 1
+            #create the nested dictionary if it doesn't exist
+            if not self.roundlist[currentChannel]:
+                self.roundlist[currentChannel] = {}
+
             irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
                       % str(self.round_count[currentChannel]), prefixNick=False)
-            self.round_count[currentChannel] = 1
         elif powered == "end":
             irc.reply("Combat Ended. Total number of rounds: %s"
                       % str(self.round_count[currentChannel]), prefixNick=False)
@@ -102,10 +106,6 @@ class Combat(callbacks.Plugin):
         """Roll to join combat. Use !inits <dex+wits>.
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
-
-        #create the nested dictionary if it doesn't exist
-        if not self.roundlist[currentChannel]:
-            self.roundlist[currentChannel] = {}
 
         #put the initiative list together
         if self.channel_lock[currentChannel] is True:
@@ -129,12 +129,21 @@ class Combat(callbacks.Plugin):
 
     def showinits(self, irc, msg, args):
         """Lists the current combat roster"""
-        #FUTURE: We need to save this generated dictionary and find a way to more quickly display it.
-        # It can be potentially interrupted as it displays the list.
         currentChannel = msg.args[0]
 
-        if self.roundlist[currentChannel]:
-            irc.reply(self.roundlist[currentChannel])
+        roster = self.roundlist[currentChannel]
+        users = list(irc.state.channels[channel].users)
+        st = list(irc.state.channels[channel].ops)
+        diff = list(set(users) - set(st))
+
+
+        if roster:
+            irc.reply("#####################", prefixNick=False)
+            for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
+                nextchar = " %s: %s" % (key, value)
+                irc.reply(nextchar, prefixNick=False)
+            irc.reply("#####################", prefixNick=False)
+
         else:
             irc.error("No characters in round. Join combat with: !inits", Raise=True)
 
