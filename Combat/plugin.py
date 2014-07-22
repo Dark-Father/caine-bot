@@ -61,12 +61,6 @@ class Combat(callbacks.Plugin):
 
     combatinit = wrap(combatinit, ['admin'])
 
-    def test(self, irc, msg, args):
-        irc.reply(irc.nick)
-        irc.reply(type(irc.nick))
-
-    test = wrap(test)
-
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
         End combat with: !combat end"""
