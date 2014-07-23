@@ -125,13 +125,17 @@ class Combat(callbacks.Plugin):
     def showinits(self, irc, msg, args):
         """Lists the current combat roster"""
         currentChannel = msg.args[0]
-        bot = irc.nick
+        bot = str.capitalize(irc.nick)
         roster = self.roundlist[currentChannel]
         users = list(irc.state.channels[currentChannel].users)
+        users = [x.lower() for x in users]
         users_joined = list(self.roundlist[currentChannel])
+        users_joined = [x.lower() for x in users_joined]
         diff = list(set(users) - set(users_joined))
-        diff.pop(diff.index(bot))
-
+        diff = [x.capitalize() for x in diff]
+        if bot in diff:
+            diff.pop(diff.index(bot))
+        
         if roster:
             irc.reply("#####################", prefixNick=False)
             for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
