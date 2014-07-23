@@ -122,7 +122,7 @@ class Combat(callbacks.Plugin):
 
             #join it in the round list dictionary, output reply.
             self.roundlist[currentChannel][character] = rolled
-            joined = "%s rolled a: %s" % (character, self.roundlist[currentChannel][character])
+            joined = "%s rolled a: %s" % (ircutils.mircColor(character, 12), self.roundlist[currentChannel][character])
             irc.reply(joined, prefixNick=False)
         else:
             irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
@@ -141,11 +141,12 @@ class Combat(callbacks.Plugin):
         diff = [x.capitalize() for x in diff]
         if bot in diff:
             diff.pop(diff.index(bot))
-        
+        diff = [ircutils.mircColor(x, 4) for x in diff]
+
         if roster:
             irc.reply("#####################", prefixNick=False)
             for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
-                nextchar = " %s: %s" % (key, value)
+                nextchar = " %s: %s" % (ircutils.mircColor(key, 10), value)
                 irc.reply(nextchar, prefixNick=False)
             irc.reply("#####################", prefixNick=False)
             if diff:
