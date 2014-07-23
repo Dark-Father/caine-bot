@@ -32,6 +32,7 @@ from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+import supybot.ircmsgs as ircmsgs
 import random
 
 
@@ -63,6 +64,7 @@ class Combat(callbacks.Plugin):
         """Start combat with: !combat start 
         End combat with: !combat end"""
         currentChannel = msg.args[0]
+        stchannel = "#stchambers"
         already = "Combat is already started. Join combat: !inits. Declare !bp spends now."
         startstop = "Start or end combat with: !combat start|end"
 
@@ -83,6 +85,10 @@ class Combat(callbacks.Plugin):
                     self.roundlist[currentChannel] = {}
                 irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
                           % str(self.round_count[currentChannel]), prefixNick=False)
+                #Notify #stchambers that a fight has broken out in the channel.
+                text = "A fight has broken out in: %s" % currentChannel
+                irc.queueMsg(ircmsgs.notice(stchannel, text))
+                #irc.queueMsg(notify)
 
             elif powered == "end" and currentChannel in self.channel_lock:
                 irc.reply("Combat Ended. Total number of rounds: %s"
