@@ -151,7 +151,7 @@ class Combat(callbacks.Plugin):
             else:
                 irc.error("No characters in round. Join combat with: !inits", Raise=True)
         except KeyError:
-            irc.reply("Combat is not started. Start combat with: !combat start", Raise=True, prefixNick=False)
+            irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
 
     showinits = wrap(showinits)
 
