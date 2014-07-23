@@ -138,8 +138,8 @@ class Combat(callbacks.Plugin):
                 nextchar = " %s: %s" % (key, value)
                 irc.reply(nextchar, prefixNick=False)
             irc.reply("#####################", prefixNick=False)
-            if diff:
-                irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff))
+            #if diff:
+            #    irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff))
         else:
             irc.error("No characters in round. Join combat with: !inits", Raise=True)
     showinits = wrap(showinits)
