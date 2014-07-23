@@ -87,8 +87,7 @@ class Combat(callbacks.Plugin):
                           % str(self.round_count[currentChannel]), prefixNick=False)
                 #Notify #stchambers that a fight has broken out in the channel.
                 text = "A fight has broken out in: %s" % currentChannel
-                irc.queueMsg(ircmsgs.notice(stchannel, text))
-                #irc.queueMsg(notify)
+                irc.sendMsg(ircmsgs.notice(stchannel, text))
 
             elif powered == "end" and currentChannel in self.channel_lock:
                 irc.reply("Combat Ended. Total number of rounds: %s"
@@ -130,26 +129,30 @@ class Combat(callbacks.Plugin):
 
     def showinits(self, irc, msg, args):
         """Lists the current combat initiative order"""
-        currentChannel = msg.args[0]
-        bot = str.capitalize(irc.nick)
-        roster = self.roundlist[currentChannel]
-        diff = list(set([x.lower() for x in list(irc.state.channels[currentChannel].users)]) -
-                    set([x.lower() for x in list(self.roundlist[currentChannel])]))
-        diff = [x.capitalize() for x in diff]
-        if bot in diff:
-            diff.pop(diff.index(bot))
-        diff = [ircutils.mircColor(x, 4) for x in diff]
+        try:
+            currentChannel = msg.args[0]
+            bot = str.capitalize(irc.nick)
+            roster = self.roundlist[currentChannel]
+            diff = list(set([x.lower() for x in list(irc.state.channels[currentChannel].users)]) -
+                        set([x.lower() for x in list(self.roundlist[currentChannel])]))
+            diff = [x.capitalize() for x in diff]
+            if bot in diff:
+                diff.pop(diff.index(bot))
+            diff = [ircutils.mircColor(x, 4) for x in diff]
 
-        if roster:
-            irc.reply("#####################", prefixNick=False)
-            for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
-                nextchar = " %s: %s" % (ircutils.mircColor(key, 10), value)
-                irc.reply(nextchar, prefixNick=False)
-            irc.reply("#####################", prefixNick=False)
-            if diff:
-                irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff))
-        else:
-            irc.error("No characters in round. Join combat with: !inits", Raise=True)
+            if roster:
+                irc.reply("#####################", prefixNick=False)
+                for key, value in sorted(roster.iteritems(), key=lambda (k, v): (v, k), reverse=True):
+                    nextchar = " %s: %s" % (ircutils.mircColor(key, 10), value)
+                    irc.reply(nextchar, prefixNick=False)
+                irc.reply("#####################", prefixNick=False)
+                if diff:
+                    irc.reply(ircutils.bold("Characters not joined: ") + ", ".join(diff), prefixNick=False)
+            else:
+                irc.error("No characters in round. Join combat with: !inits", Raise=True)
+        except KeyError:
+            irc.reply("Combat is not started. Start combat with: !combat start", Raise=True, prefixNick=False)
+
     showinits = wrap(showinits)
 
     def newround(self, irc, msg, args):
