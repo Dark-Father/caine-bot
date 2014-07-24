@@ -44,7 +44,6 @@ import time
 class Characters(callbacks.Plugin):
     """Character administration and tracking for Vampire: The Masquerade"""
 
-
     def __init__(self, irc):
         #what does this do? I dunno!
         self.__parent = super(Characters, self)
@@ -59,11 +58,18 @@ class Characters(callbacks.Plugin):
             #best practice here. Rather than have the database constantly open, we open it specifically for each command
             conn = sqlite3.connect('characters.db')
             c = conn.cursor()
+            c.execute("CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)")
+            conn.commit()
+            irc.reply('Request Log Database Created.')
+            c.execute("CREATE TABLE XPlog(Id INTEGER PRIMARY KEY, Name TEXT, Date TEXT, ST TEXT, Amount INT,"
+                      " Reason TEXT)")
+            conn.commit()
+            irc.reply('XP Log Database Created.')
             c.execute("CREATE TABLE Chars(Id INTEGER PRIMARY KEY, Name TEXT unique, BP_Cur INT, "
                       "BP_Max INT, WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT, Link TEXT, "
                       "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT, NPC INT)")
             conn.commit()
-            irc.reply('Database Created.')
+            irc.reply('Character Database Created.')
         except sqlite3.Error:
             #if we pick up an error (i.e the database already exists)
             irc.reply('Error: Database already exists')
@@ -81,9 +87,6 @@ class Characters(callbacks.Plugin):
         bp = int(bp)
         wp = int(wp)
         capability = 'characters.createchar'
-
-        irc.reply(ircdb.isCapability(capability))
-        irc.reply(ircdb.checkCapability(msg.prefix, capability))
 
         if capability:
             if not ircdb.checkCapability(msg.prefix, capability):
@@ -190,7 +193,6 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
 
-
     setlink = wrap(setlink, ['text'])
 
     def describe(self, irc, msg, args, name):
@@ -204,14 +206,21 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name, Description, Link FROM Chars WHERE Name = ?", (name,))
-            desc = c.fetchone()
-            created = desc[0] + " " + desc[1]
-            created = ircutils.mircColor(created, 6)
-            irc.reply(created, prefixNick=False)
-            created2nd = "Link: " + desc[2]
-            created2nd = ircutils.mircColor(created2nd, 6)
-            irc.reply(created2nd, prefixNick=False)
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT Name, Description, Link FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+                desc = c.fetchone()
+                created = desc[0] + " " + desc[1]
+                created = ircutils.mircColor(created, 6)
+                irc.reply(created, prefixNick=False)
+                created2nd = "Link: " + desc[2]
+                created2nd = ircutils.mircColor(created2nd, 6)
+                irc.reply(created2nd, prefixNick=False)
+
+            else:
+                irc.reply("Error: Name not found.")
 
         except sqlite3.Error:
             conn.rollback()
@@ -220,7 +229,7 @@ class Characters(callbacks.Plugin):
             conn.close()
     describe = wrap(describe, ['anything'])
 
-    def getbp(self,irc, msg, args):
+    def getbp(self, irc, msg, args):
         """takes no arguments
         Check your characters BP
         """
@@ -280,7 +289,7 @@ class Characters(callbacks.Plugin):
                     bpcur = str(bpcur)
                     bpmax = str(bp[1])
                     created = "Available Blood (" + bpcur + "/" + bpmax + ")"
-                    chanreply = "spent 1 BP"
+                    chanreply = "Spent 1 BP"
                     irc.reply(chanreply)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 elif bpnum <= bp[1] and bpnum <= bp[0] and bpnum is not None:
@@ -290,7 +299,7 @@ class Characters(callbacks.Plugin):
                     bpcur = str(bpcur)
                     bpmax = str(bp[1])
                     created = "Available Blood (" + bpcur + "/" + bpmax + ")"
-                    chanreply = "spent %s BP" % bpnum
+                    chanreply = "Spent %s BP" % bpnum
                     irc.reply(chanreply)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 else:
@@ -301,7 +310,6 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
-
 
     bp = wrap(bp, [optional('int'), optional('text')])
 
@@ -315,14 +323,14 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                 c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (newbp, name))
-                 conn.commit()
-                 created = "New BP set to %s for %s" % (newbp, name)
-                 irc.reply(created, private=True)
+                c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newbp, name))
+                conn.commit()
+                created = "New BP set to %s for %s" % (newbp, name)
+                irc.reply(created, private=True)
 
             else:
                 irc.reply("Error: Name not found.")
@@ -342,11 +350,11 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (name,))
+                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 bp = c.fetchone()
                 bpcur = str(bp[0])
                 bpmax = str(bp[1])
@@ -383,36 +391,36 @@ class Characters(callbacks.Plugin):
 
                     if die >= difficulty:  # success evaluation, no specs when you feed
                         success += 1
-                        fancy_outcome.append(ircutils.mircColor(die,12))
+                        fancy_outcome.append(ircutils.mircColor(die, 12))
 
                     elif die == 1:  # math for ones
                         ones += 1
-                        fancy_outcome.append(ircutils.mircColor(die,4))
+                        fancy_outcome.append(ircutils.mircColor(die, 4))
 
                     else:
-                        fancy_outcome.append(ircutils.mircColor(die,6))
+                        fancy_outcome.append(ircutils.mircColor(die, 6))
 
                 total = success - ones
 
                 if success == 0 and ones > 0:
                     total = "BOTCH  >:D"
-                    dicepool = 'fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
-                                                                  str(difficulty))
+                    dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
+                                                                      str(difficulty))
                     irc.reply(dicepool, private=True)
                     c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
                     conn.commit()
                 elif 0 <= success <= ones:
                     total = "Failure"
-                    dicepool = 'fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
-                                                                  str(difficulty))
+                    dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
+                                                                      str(difficulty))
                     irc.reply(dicepool, private=True)
                     c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
                     conn.commit()
 
                 elif total > 0:
                     total = "Gained 3 bp"
-                    dicepool = 'fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
-                                                                  str(difficulty))
+                    dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
+                                                                      str(difficulty))
                     irc.reply(dicepool, private=True)
                     c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
                     conn.commit()
@@ -425,13 +433,9 @@ class Characters(callbacks.Plugin):
                         c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpmax, nicks))
                         conn.commit()
                     else:
-                        bpcur = bpcur + 3
+                        bpcur += 3
                         c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
                         conn.commit()
-
-
-
-
         finally:
             conn.close()
     feed = wrap(feed, ['int', 'int'])
@@ -518,7 +522,6 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
 
-
     wp = wrap(wp, [optional('int'), optional('text')])
 
     def setwp(self, irc, msg, args, name, newwp):
@@ -531,11 +534,11 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                 c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (newwp, name))
+                 c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newwp, name))
                  conn.commit()
                  created = "New WP set to %s for %s" % (newwp, name)
                  irc.reply(created, private=True)
@@ -558,11 +561,11 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (name,))
+                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 wp = c.fetchone()
                 wpcur = str(wp[0])
                 wpmax = str(wp[1])
@@ -574,7 +577,7 @@ class Characters(callbacks.Plugin):
             conn.close()
     getcharwp = wrap(getcharwp, ['anything'])
 
-    def getxp(self,irc, msg, args):
+    def getxp(self, irc, msg, args):
         """takes no arguments
         Check your characters XP
         """
@@ -617,11 +620,11 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (name,))
+                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = str(xp[0])
                 xpmax = str(xp[1])
@@ -642,17 +645,18 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (name,))
+                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = int(xp[0])
                 xpmax = int(xp[1])
                 xpmax = xpmax + num
                 xpcur = xpcur + num
-                c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ?", (xpcur, xpmax, name))
+                c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ? COLLATE NOCASE", (
+                          xpcur, xpmax, name))
                 conn.commit()
                 created = "%s XP given to %s. (%s/%s)" % (num, name, xpcur, xpmax)
                 irc.reply(created, private=True)
@@ -672,28 +676,257 @@ class Characters(callbacks.Plugin):
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
             c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ?", (name,))
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT XP_Cur FROM Chars WHERE Name = ?", (name,))
+                c.execute("SELECT XP_Cur FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = int(xp[0])
                 xpcur = xpcur - num
                 if xpcur < 0:
                     irc.reply("Not enough XP to spend!", private=True)
                 else:
-                    c.execute("UPDATE Chars SET XP_Cur = ? WHERE Name = ?", (xpcur, name))
-                    # date = time.strftime("%x")
-                    # log = "%s - %s XP - %s - %s" % (name, num, reason, date)
-                    # gotta decide how best to create an xp spend log
+                    c.execute("UPDATE Chars SET XP_Cur = ? WHERE Name = ? COLLATE NOCASE", (xpcur, name))
+                    c.execute("INSERT INTO XPlog(Name, Date, ST, Amount, Reason) VALUES(?, date('now'), ?, ?, ?)",
+                              (name, nicks, num, reason))
                     conn.commit()
                     created = "%s XP spent from %s." % (num, name)
                     irc.reply(created, private=True)
 
         finally:
             conn.close()
+
     spendxp = wrap(spendxp, ['anything', 'int', 'text'])
+
+    def requestxp(self, irc, msg, args, amount):
+        """<amount>
+
+        Request <amount> (1-3) XP for the last week. XP is given out on Mondays.
+        """
+
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+            c.execute("SELECT Name FROM Request WHERE Name = ?", (nicks,))
+            reqname = c.fetchone()
+
+            if amount > 3:
+                created = "You have requested %s dicks in your eye, you god damn smartass. " \
+                          "Pick something below 3." % amount
+
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+
+            elif checkname is not None and reqname is None:
+                c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (nicks, amount))
+                conn.commit()
+                created = "You have requested %s XP" % amount
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+
+            elif checkname is not None and reqname is not None:
+                c.execute("UPDATE Request SET Amount = ? WHERE Name = ?", (amount, nicks))
+                conn.commit()
+                created = "You have requested %s XP" % amount
+                irc.queueMsg(ircmsgs.notice(nicks, created))
+            else:
+                irc.reply("Error: Character name not found")
+
+        finally:
+            conn.close()
+
+    requestxp = wrap(requestxp, ['int'])
+
+    def requestlist(self, irc, msg, args):
+        """takes no arguments
+
+        Show the Request XP list for this week
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            c.execute("SELECT * FROM Request")
+            rows = c.fetchall()
+
+            for row in rows:
+                created = "%s requested %s XP" % (row[1], row[2])
+                irc.reply(created)
+
+        finally:
+            conn.close()
+
+    requestlist = wrap(requestlist)
+
+    def modifylist(self, irc, msg, args, command, name, amount):
+        """<command> <name> optional(amount)
+
+        Modify the requestxp list.
+        Remove command removes a name from the list.
+        Add command adds a name and an amount to the list.
+        Change command changes a name already on the list.
+        """
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Request WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+            secname = c.fetchone()
+
+
+            if command == 'remove':
+                if checkname is not None:
+                    c.execute("DELETE FROM Request WHERE Name =? COLLATE NOCASE", (name,))
+                    conn.commit()
+                    created = "%s removed from requestxp list." % name
+                    irc.reply(created, private=True)
+
+                else:
+                    irc.reply("Error: Name not found")
+
+            elif command == 'add':
+                if checkname is None and secname is not None:
+                    c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (name, amount))
+                    conn.commit()
+                    created = "%s added with %s XP requested." % (name, amount)
+                    irc.reply(created, private=True)
+
+                elif secname is None:
+                    irc.reply("Error: Character does not exist")
+
+                else:
+                    irc.reply("Error: Name already exists in list. Use change instead.")
+
+            elif command == 'change':
+                if checkname is not None:
+                    c.execute("UPDATE Request SET Amount = ? WHERE Name = ? COLLATE NOCASE", (amount, name))
+                    conn.commit()
+                    created = "%s changed to %s XP requested." % (name, amount)
+                    irc.reply(created, private=True)
+
+                else:
+                    irc.reply("Error: Name not found")
+            else:
+                irc.reply("Error: Please use commands: remove, add or change")
+
+        finally:
+            conn.close()
+
+    modifylist = wrap(modifylist, ['anything', 'anything', optional('int')])
+
+    def approvelist(self, irc, msg, args):
+        """takes no arguments
+
+        Approves the XP list for this week.
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT * FROM Request")
+            rows = c.fetchall()
+
+            for row in rows:
+                name = row[1]
+                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (name,))
+                xp = c.fetchone()
+                xpcur = xp[0] + row[2]
+                xpmax = xp[1] + row[2]
+                c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ?", (xpcur, xpmax, name))
+                conn.commit()
+                created = "Gave %s %s XP" % (name, row[2])
+                irc.reply(created, private=True)
+
+        finally:
+            c.execute("DROP TABLE Request")
+            c.execute("CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)")
+            conn.commit()
+            conn.close()
+
+    approvelist = wrap(approvelist)
+
+    def npc(self, irc, msg, args, name, numset):
+        """<name> <1 or 0>
+
+        Sets a characters as an NPC in the bot, preventing blood loss overnight, etc.
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                    c.execute("UPDATE Chars SET NPC = ? WHERE Name = ? COLLATE NOCASE", (numset, name))
+                    conn.commit()
+                    created = "NPC set to %s" % numset
+                    irc.reply(created)
+
+        finally:
+            conn.close()
+
+    npc = wrap(npc, ['anything', 'int'])
+
+    def nightly(self, irc, msg, args):
+        """takes no arguments
+
+        Runs the nightly maintenance.
+        """
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            c.execute("SELECT BP_Cur, Name, NPC, BP_Max FROM Chars")
+            rows = c.fetchall()
+
+            for row in rows:
+                if row[2] == 0:
+                    bpcur = row[0] - 1
+                    if bpcur < 0:
+                        bpcur = 0
+                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, row[1]))
+                    conn.commit()
+                else:
+                    bpcur = row[3]
+                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, row[1]))
+                    conn.commit()
+
+        finally:
+            conn.close()
+
+    nightly = wrap(nightly)
+
+    def weekly(self, irc, msg, args):
+        """takes no arguments
+
+        Runs the weekly maintenance.
+        """
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            c.execute("SELECT WP_Cur, Name, NPC, WP_Max FROM Chars")
+            rows = c.fetchall()
+
+            for row in rows:
+
+                wpcur = row[0] + 1
+                if wpcur > row[3]:
+                    wpcur = row[3]
+                c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, row[1]))
+                conn.commit()
+
+
+
+        finally:
+            conn.close()
+    weekly = wrap(weekly)
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
@@ -704,8 +937,18 @@ class Characters(callbacks.Plugin):
         for row in rows:
             irc.reply(row)
 
-
     ctest = wrap(ctest)
+
+#    def logtest(self,irc, msg, args):
+#        irc.reply("Logtest reporting in")
+#        c.execute("SELECT * FROM XPlog")
+#
+#       rows = c.fetchall()
+#
+#        for row in rows:
+#            irc.reply(row)
+#
+#   logtest = wrap(logtest)
 
 
 Class = Characters

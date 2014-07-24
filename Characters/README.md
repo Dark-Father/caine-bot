@@ -65,75 +65,214 @@ This command describes the named Character in the channel or PM.
 
 ###!getbp
 
-Gets BP level for player
+This command checks a Characters bloodpool.
+
+######Example:
+
+!getbp
+<br>[BOT] Available Blood (20/20)
 
 
 ###!feed
 
-Feeding
+This command hunts for the character, in order to gain blood.
+
+#####Example:
+
+!feed 3 5
+<br>[BOT] You fed: 4 6 4 (Gained 3 bp) 3 dice @diff 5
 
 
 ###!bp
 
-Spends bp
+This command spends BP for the named character. It works both without a number (defaults to 1 bp) as well as with a number and a reason (both optional)
+
+#####Example:
+
+!bp 3 Cel 3
+<br>[BOT] Spent 3 BP
 
 
 ###!getcharbp
 
-gets bp of a character for STs
+This command is ST only, and returns a named Characters current bloodpool.
+
+#####Example:
+
+!getcharbp Doug
+<br>[BOT] Available Blood for Doug (17/20)
 
 
 ###!setbp
 
-sets bp of a character by sts
+This command is ST only, and sets a named Characters current bloodpool.
 
+#####Example:
+
+!setbp Doug 20
+<br>[BOT] New BP set to 20 for Doug
 
 
 ###!getwp
 
-gets wp for player
+This command checks a characters willpower.
+
+#####Example:
+
+!getwp
+<br>[BOT] Available Willpower (8/8)
 
 
 ###!wp
 
-Spend a wp
+This command spends willpower for a character. May be used alone (default to 1 wp) or with an optional number and reason
+
+#####Example:
+
+!wp 1 resist derangement
+<br>[BOT] Doug: Spent 1 WP
+<br>[BOT] Available Willpower (7/8)
 
 
 ###!getcharwp
-gets wp of a character for sts
+
+This command gets the named Characters current willpower.
+
+#####Example:
+
+!getcharwp Doug
+<br>[BOT] Available willpower for Doug (7/7)
 
 
 ###!setwp
 
-sets wp of a character for sts
+This command sets the named characters current willpower.
+
+#####Example:
+
+!setwp Doug 5
+<br>[Bot] New wp set to 5 for Doug
 
 
 ###!getxp
 
-gets xp for a player
+This command checks a characters current and total experience points.
+
+#####Example:
+
+!getxp
+<br>[Bot] Available Experience (6/30)
 
 
 ###!requestxp
 
-request xp
+This command puts in a request for weekly experience.
+
+#####Example:
+
+!requestxp 3
+<br>[Bot] You have requested 3 XP.
 
 
 ###!givexp
 
-gives xp from an st
+This command allows an ST to manually give XP to a character.
+
+#####Example:
+
+!givexp Doug 3
+<br>[Bot] 3 XP given to Doug.
+
 
 ###!spendxp
 
-st spend xp
+This command allows an ST to spend a characters XP.
+
+#####Example:
+
+!spendxp Doug 3 Athletics 1
+<br>[Bot] 3 XP spent from Doug.
+
 
 ###!requestlist
 
-show current weeks requested xp
+This command shows an ST the current weeks requestxp list.
 
-###!approvexp
+#####Example:
 
-approve the XP list
+!requestlist
+<br>[Bot] Doug requested 3 XP
+<br>[Bot] Bill requested 3 XP
 
-###!modify request
 
-st modify an xp request
+###!modifylist
+
+This command allows an ST to modify the requestxp list. They can either ADD, REMOVE or CHANGE the list.
+
+#####Example:
+
+!modifylist add Ken 3
+<br>[Bot] Ken added with 3 XP requested
+
+
+###!approvelist
+
+This command approves the requestxp list, giving out XP.
+
+#####Example:
+
+!approvelist
+<br>[Bot] Doug given 3 XP
+<br>[Bot] Bill given 3 XP
+<br>[Bot] Ken given 3 XP
+
+
+###!dmg
+
+This command shows a characters current damage levels.
+
+#####Example:
+
+!dmg
+<br>[Bot] 3 agg / 3 norm * CRIPPLED -5 Dice Pool Penalty
+
+
+###!heal
+
+This command spends blood to heal a characters damage.
+
+#####Example:
+
+!heal 1 agg
+<br>[Bot] 1 agg healed for 5 bp.
+<br>[Bot] 2 agg / 3 norm * MAULED -2 Dice Pool Penalty
+
+
+###!givedmg
+
+This command allows an ST to give damage to a character.
+
+#####Example:
+
+!givedmg Doug 1 agg
+<br>[Bot] Doug given 1 agg damage.
+
+
+###!npc
+
+This command allows an ST to set a character as an NPC, removing their need to feed. 1 sets the character as an NPC, 0 sets them as a normal character.
+
+#####Example:
+
+!npc Doug 1
+<br>[Bot] NPC set to 1
+
+
+###!nightly
+
+This command subtracts BP nightly, and should be scheduled to run every 24 hours.
+
+
+###!weekly
+
+This command adds WP weekly, and should be scheduled to run every 7 days.
