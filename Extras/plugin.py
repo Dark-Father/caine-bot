@@ -77,8 +77,6 @@ class Extras(callbacks.Plugin):
         currentChannel = msg.args[0]
         only_channel = "#ooc"
         nick = msg.nick
-        die = random.randint(1, 1000)
-        irc.reply(die)
 
         if currentChannel == only_channel:
             if nick not in self.snack:
