@@ -83,7 +83,7 @@ class Extras(callbacks.Plugin):
                 self.snack[nick] = 0
             self.snack[nick] += 1
 
-            if self.snack[nick] < random.randint(1, 1000):
+            if self.snack[nick] > random.randint(1, 1000):
                 irc.reply("You fed a treat to %s. You've fed %s treats to Caine."
                           % (irc.nick, self.snack[nick]))
             else:
