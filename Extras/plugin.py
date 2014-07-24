@@ -49,19 +49,25 @@ class Extras(callbacks.Plugin):
         """takes no arguments
         Checks #stchambers to see if occupied."""
         channel = "#stchambers"
-        diff = []
+        bot = str.capitalize(irc.nick)
+        storytellers = [x.capitalize() for x in list(irc.state.channels[channel].ops)]
+        diff = list(set([x.lower() for x in list(irc.state.channels[channel].users)]) -
+                    set([x.lower() for x in list(irc.state.channels[channel].ops)]))
+        diff = [x.capitalize() for x in diff]
+        if bot in diff:
+            diff.pop(diff.index(bot))
+        if bot in storytellers:
+            storytellers.pop(storytellers.index(bot))
 
-        users = list(irc.state.channels[channel].users)
-        st = list(irc.state.channels[channel].ops)
-        diff = list(set(users) - set(st))
+        diff = [ircutils.mircColor(x, 4) for x in diff]
 
-        if not st:
-            abbra = "There are no Storytellers logged in. Try again later."
-            irc.reply(abbra)
-        elif diff:
+        if diff:
             abbra = "Chambers is " + ircutils.mircColor("BUSY", 4) + ". Occupied by: " + ircutils.bold(", ".join(diff))
             irc.reply(abbra)
-        else:
+        elif not storytellers:
+            abbra = "There are no Storytellers logged in. Try again later."
+            irc.reply(abbra)
+        elif not diff:
             abbra = "Chambers is " + ircutils.mircColor("OPEN", 3) + ". Join #stchambers now!"
             irc.reply(abbra)
 
