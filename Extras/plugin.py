@@ -74,7 +74,7 @@ class Extras(callbacks.Plugin):
 
     def sacrifice(self, irc, msg, args):
         currentChannel = msg.args[0]
-        only_channel = "#devel"
+        only_channel = "#ooc"
 
         try:
             if currentChannel == only_channel:
