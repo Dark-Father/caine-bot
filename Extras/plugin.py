@@ -25,7 +25,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
 ###
 
 import supybot.utils as utils
@@ -33,6 +32,7 @@ from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+import random
 
 
 class Extras(callbacks.Plugin):
@@ -70,8 +70,29 @@ class Extras(callbacks.Plugin):
         elif not diff:
             abbra = "Chambers is " + ircutils.mircColor("OPEN", 3) + ". Join #stchambers now!"
             irc.reply(abbra)
-
     stfree = wrap(stfree)
+
+    def sacrifice(self, irc, msg, args):
+        currentChannel = msg.args[0]
+        only_channel = "#devel"
+
+        try:
+            if currentChannel == only_channel:
+                die = random.randint(1, 100)
+                if die < 90:
+                    irc.reply("%s sacrifices themselves to %s."
+                              % (msg.nick, irc.nick), prefixNick=False)
+                else:
+                    irc.reply("%s rejects your pathetic attempts to appease him, %s."
+                              % (irc.nick, msg.nick), prefixNick=False)
+            else:
+                irc.error("Command only available in #ooc.", Raise=True)
+        except KeyError:
+            pass
+    sacrifice = wrap(sacrifice)
+
+    def treat(self, irc, msg, args):
+        pass
 
 
 Class = Extras
