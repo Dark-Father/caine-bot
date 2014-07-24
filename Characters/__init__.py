@@ -38,17 +38,17 @@ import supybot.world as world
 
 # Use this for the version of this plugin.  You may wish to put a CVS keyword
 # in here if you're keeping the plugin in CVS or some similar system.
-__version__ = ""
+__version__ = "1.0"
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = supybot.authors.unknown
+__author__ = "Liam Burke"
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
-__contributors__ = {}
+__contributors__ = {Author1: "David Rickman"}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = '' # 'http://supybot.com/Members/yourname/Characters/download'
+__url__ = 'https://github.com/Elysia-Online/caine-bot' # 'http://supybot.com/Members/yourname/Characters/download'
 
 import config
 import plugin
