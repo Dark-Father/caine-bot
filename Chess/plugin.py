@@ -41,6 +41,46 @@ class Chess(callbacks.Plugin):
     This should describe *how* to use this plugin."""
     threaded = True
 
+    def __init__(self, irc):
+        self.__parent = super(Combat, self)
+        self.__parent.__init__(irc)
+        self.channel_lock = {}
+        self.players = {}
+
+    def chess(self, irc, msg, args, newgame):
+        currentChannel = msg.args[0]
+        try:
+            if currentChannel not in self.channel_lock:
+                self.channel_lock[currentChannel] = True
+            else:
+                self.channel_lock[currentChannel] = True
+
+            if newgame == "newgame":
+                if currentChannel not in self.channel_lock:
+                    self.channel_lock[currentChannel] = True
+                    self.players[currentChannel].clear()
+                else:
+                    self.channel_lock[currentChannel] = True
+                    self.players[currentChannel].clear()
+
+        except KeyError:
+            irc.reply("There was an error. Try !chess newgame")
+
+
+    chess = wrap(chess, [optional('something')])
+
+    def white(self, irc, msg, args, diff):
+        currentChannel = msg.args[0]
+        pass
+    white = wrap(white, [optional('int')])
+
+    def black(self, irc, msg, args, diff):
+        currentChannel = msg.args[0]
+        pass
+    black = wrap(black, [optional('int')])
+
+
+
 
 Class = Chess
 
