@@ -44,6 +44,7 @@ class Extras(callbacks.Plugin):
         #pass
         self.__parent = super(Extras, self)
         self.__parent.__init__(irc)
+        self.snack = {}
 
     def stfree(self, irc, msg, args):
         """takes no arguments
@@ -72,6 +73,26 @@ class Extras(callbacks.Plugin):
             irc.reply(abbra)
     stfree = wrap(stfree)
 
+    def treat(self, irc, msg, args):
+        currentChannel = msg.args[0]
+        only_channel = "#ooc"
+        nick = msg.nick
+
+        if currentChannel == only_channel:
+            if nick not in self.snack:
+                self.snack[nick] = 0
+            self.snack[nick] += 1
+
+            if self.snack[nick] < random.randint(1, 1000):
+                irc.reply("You fed a treat to %s. You've fed %s treats to Caine."
+                          % (irc.nick, self.snack[nick]))
+            else:
+                irc.reply("Caine has risen from torpor and devoured you as a treat.")
+                self.snack[nick] = 0
+        else:
+            irc.error("Command only available in #ooc.", Raise=True)
+    treat = wrap(treat)
+
     def sacrifice(self, irc, msg, args):
         currentChannel = msg.args[0]
         only_channel = "#ooc"
@@ -90,11 +111,6 @@ class Extras(callbacks.Plugin):
         except KeyError:
             pass
     sacrifice = wrap(sacrifice)
-
-    def treat(self, irc, msg, args):
-        pass
-
-
 Class = Extras
 
 
