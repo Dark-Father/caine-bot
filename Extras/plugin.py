@@ -83,9 +83,9 @@ class Extras(callbacks.Plugin):
         if currentChannel == only_channel:
             if nick not in self.snack:
                 self.snack[nick] = 0
-            self.snack[nick] += 1
 
             if self.snack[nick] < random.randint(1, 1000):
+                self.snack[nick] += 1
                 irc.reply("You fed a treat to %s. You've fed %s treats to Caine."
                           % (irc.nick, self.snack[nick]))
             else:
