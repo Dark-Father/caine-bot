@@ -46,6 +46,55 @@ class Chess(callbacks.Plugin):
         self.channel_lock = {}
         self.players = {}
 
+    def Roll(self, num, difficulty):
+        #VARIABLES
+        success = ones = spec = 0
+        difficulty = int(difficulty)
+        fancy_outcome = []
+
+        # CALCULATIONS
+        #compare outcome list with successes, 1s and 10s rolled and calc accordingly
+        for s in range(num):
+            die = random.randint(1, 10)
+
+            if die >= difficulty:  # success evaluation
+                success += 1
+                if die == 10:
+                    spec += 1
+                    fancy_outcome.append(ircutils.mircColor(die,10))
+                else:
+                    fancy_outcome.append(ircutils.mircColor(die,12))
+
+            elif die == 1:  # math for ones
+                ones += 1
+                fancy_outcome.append(ircutils.mircColor(die,4))
+
+            else:
+                fancy_outcome.append(ircutils.mircColor(die,6))
+
+        #the aftermath
+        total = success - ones
+        if spec > ones:
+            spec = spec - ones + total
+        else:
+            spec = total
+
+        # OUTPUT, bottom up approach: from botch, failure, success, specialty success.
+        if success == 0 and ones > 0:
+            total = "BOTCH  >:D"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
+            return dicepool
+        elif 0 <= success <= ones:
+            total = "Failure"
+            dicepool = 'rolled: %s (%s)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
+            return dicepool
+        elif 0 < total == spec:
+            dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
+            return dicepool
+        elif 0 < total < spec:
+            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(fancy_outcome), total, spec, str(difficulty))
+            return dicepool
+
     def chess(self, irc, msg, args, newgame):
         current_channel = msg.args[0]
         try:
@@ -70,7 +119,7 @@ class Chess(callbacks.Plugin):
 
     chess = wrap(chess, [optional('something')])
 
-    def white(self, irc, msg, args, diff):
+    def white(self, irc, msg, args, num, difficulty):
         current_channel = msg.args[0]
         fancy_outcome = []
 
@@ -78,43 +127,12 @@ class Chess(callbacks.Plugin):
             irc.error("Game not started. Start with !chess or !chess newgame")
 
         if self.channel_lock[current_channel] is True:
-            for s in range(num):
-                if diff:
-                    difficulty = diff
-                else:
-                    difficulty = 7
-                die = random.randint(1, 10)
+            if not difficulty:
+                difficulty = 7
 
-                if die >= difficulty:  # success evaluation
-                    success += 1
-                    if die == 10:
-                        spec += 1
-                        fancy_outcome.append(ircutils.mircColor(die, 10))
-                    else:
-                        fancy_outcome.append(ircutils.mircColor(die, 12))
-
-                elif die == 1:  # math for ones
-                    ones += 1
-                    fancy_outcome.append(ircutils.mircColor(die, 4))
-
-                else:
-                    fancy_outcome.append(ircutils.mircColor(die, 6))
-
-            #the aftermath
-            total = success - ones
-            if spec > ones:
-                spec = spec - ones + total
-            else:
-                spec = total
-
-
-
-
-
+        irc.reply(Roll(num, difficulty))
         else:
             irc.error("Game not started. Start with !chess or !chess newgame")
-
-
     white = wrap(white, [optional('int')])
 
     def black(self, irc, msg, args, diff):

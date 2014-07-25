@@ -49,9 +49,8 @@ class Roller(callbacks.Plugin):
         !roll <number of dice> <difficulty> (optional action text)"""
 
         #VARIABLES
-        success = ones = spec = total = 0
+        success = ones = spec = 0
         difficulty = int(difficulty)
-        outcome = []
         fancy_outcome = []
 
         # CALCULATIONS
