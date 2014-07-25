@@ -35,7 +35,6 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import random
 
-
 class Chess(callbacks.Plugin):
     """Add the help for "@plugin help Chess" here
     This should describe *how* to use this plugin."""
@@ -48,20 +47,22 @@ class Chess(callbacks.Plugin):
         self.players = {}
 
     def chess(self, irc, msg, args, newgame):
-        currentChannel = msg.args[0]
+        current_channel = msg.args[0]
         try:
-            if currentChannel not in self.channel_lock:
-                self.channel_lock[currentChannel] = True
+            if current_channel not in self.channel_lock:
+                self.channel_lock[current_channel] = True
             else:
-                self.channel_lock[currentChannel] = True
+                self.channel_lock[current_channel] = True
 
             if newgame == "newgame":
-                if currentChannel not in self.channel_lock:
-                    self.channel_lock[currentChannel] = True
-                    self.players[currentChannel].clear()
+                if current_channel not in self.channel_lock:
+                    self.channel_lock[current_channel] = True
+                    self.players[current_channel].clear()
+                    irc.reply("New Game Started.")
                 else:
-                    self.channel_lock[currentChannel] = True
-                    self.players[currentChannel].clear()
+                    self.channel_lock[current_channel] = True
+                    self.players[current_channel].clear()
+                    irc.reply("New Game Started.")
 
         except KeyError:
             irc.reply("There was an error. Try !chess newgame")
@@ -70,13 +71,85 @@ class Chess(callbacks.Plugin):
     chess = wrap(chess, [optional('something')])
 
     def white(self, irc, msg, args, diff):
-        currentChannel = msg.args[0]
-        pass
+        current_channel = msg.args[0]
+        fancy_outcome = []
+
+        if current_channel not in self.channel_lock:
+            irc.error("Game not started. Start with !chess or !chess newgame")
+
+        if self.channel_lock[current_channel] is True:
+            for s in range(num):
+                if diff:
+                    difficulty = diff
+                else:
+                    difficulty = 7
+                die = random.randint(1, 10)
+
+                if die >= difficulty:  # success evaluation
+                    success += 1
+                    if die == 10:
+                        spec += 1
+                        fancy_outcome.append(ircutils.mircColor(die, 10))
+                    else:
+                        fancy_outcome.append(ircutils.mircColor(die, 12))
+
+                elif die == 1:  # math for ones
+                    ones += 1
+                    fancy_outcome.append(ircutils.mircColor(die, 4))
+
+                else:
+                    fancy_outcome.append(ircutils.mircColor(die, 6))
+
+            #the aftermath
+            total = success - ones
+            if spec > ones:
+                spec = spec - ones + total
+            else:
+                spec = total
+
+
+
+
+
+        else:
+            irc.error("Game not started. Start with !chess or !chess newgame")
+
+
     white = wrap(white, [optional('int')])
 
     def black(self, irc, msg, args, diff):
-        currentChannel = msg.args[0]
-        pass
+        current_channel = msg.args[0]
+        fancy_outcome = []
+
+        if current_channel not in self.channel_lock:
+            irc.reply("Game not started. Start with !chess or !chess newgame")
+
+        for s in range(num):
+            if diff:
+                difficulty = diff
+            else:
+                difficulty = 7
+            die = random.randint(1, 10)
+
+            if die >= difficulty: #success evaluation
+                success += 1
+                if die == 10:
+                    spec += 1
+                    fancy_outcome.append(ircutils.mircColor(die, 10))
+                else:
+                    fancy_outcome.append(ircutils.mircColor(die, 12))
+
+            elif die == 1: #math for ones
+                ones += 1
+                fancy_outcome.append(ircutils.mircColor(die, 4))
+
+            else:
+                fancy_outcome.append(ircutils.mircColor(die, 6))
+
+
+        if current_channel not in self.channel_lock:
+            irc.reply("Game not started. Start with !chess or !chess newgame")
+
     black = wrap(black, [optional('int')])
 
 
