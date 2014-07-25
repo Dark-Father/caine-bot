@@ -1,4 +1,4 @@
-###
+# ##
 # Copyright (c) 2014, David Rickman
 # All rights reserved.
 #
@@ -28,12 +28,13 @@
 
 ###
 
-import supybot.utils as utils 
+import supybot.utils as utils
 from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import random
+
 
 class Roller(callbacks.Plugin):
     """rolls dice for Vampire the Masquerade"""
@@ -54,30 +55,25 @@ class Roller(callbacks.Plugin):
         fancy_outcome = []
 
         # CALCULATIONS
-        #build roll outcome list
-        #for x in range(num):
-        #    rolled = str(random.randrange(1, sides))
-        #    outcome.append(rolled)
-
         #compare outcome list with successes, 1s and 10s rolled and calc accordingly
         for s in range(num):
             die = random.randint(1, 10)
-            
-            if die >= difficulty: #success evaluation
+
+            if die >= difficulty:  #success evaluation
                 success += 1
                 if die == 10:
                     spec += 1
-                    fancy_outcome.append(ircutils.mircColor(die,10))
+                    fancy_outcome.append(ircutils.mircColor(die, 10))
                 else:
-                    fancy_outcome.append(ircutils.mircColor(die,12))
-            
-            elif die == 1: #math for ones
+                    fancy_outcome.append(ircutils.mircColor(die, 12))
+
+            elif die == 1:  #math for ones
                 ones += 1
-                fancy_outcome.append(ircutils.mircColor(die,4))
-            
+                fancy_outcome.append(ircutils.mircColor(die, 4))
+
             else:
-                fancy_outcome.append(ircutils.mircColor(die,6))
-        
+                fancy_outcome.append(ircutils.mircColor(die, 6))
+
         #the aftermath
         total = success - ones
         if spec > ones:
@@ -98,11 +94,11 @@ class Roller(callbacks.Plugin):
             dicepool = 'rolled: %s (%s successes)@diff %s' % (" ".join(fancy_outcome), total, str(difficulty))
             irc.reply(dicepool)
         elif 0 < total < spec:
-            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (" ".join(fancy_outcome), total, spec, str(difficulty))
+            dicepool = 'rolled: %s (%s successes (spec: %s))@diff %s' % (
+                " ".join(fancy_outcome), total, spec, str(difficulty))
             irc.reply(dicepool)
 
     roll = wrap(roll, ['int', 'int', optional('text')])
-
 
 
 Class = Roller
