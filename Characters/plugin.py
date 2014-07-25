@@ -69,7 +69,8 @@ class Characters(callbacks.Plugin):
             irc.reply('XP Log Database Created.')
             c.execute("CREATE TABLE Chars(Id INTEGER PRIMARY KEY, Name TEXT unique, BP_Cur INT, "
                       "BP_Max INT, WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT, Link TEXT, "
-                      "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT, NPC INT)")
+                      "Requested_XP INT, Fed_Already INT, Aggravated_Dmg INT, Normal_Dmg INT, NPC INT, Lastname TEXT,"
+                      "Stats TEXT)")
             conn.commit()
             irc.reply('Character Database Created.')
         except sqlite3.Error:
@@ -101,9 +102,10 @@ class Characters(callbacks.Plugin):
             c = conn.cursor()
             c.execute("INSERT INTO Chars(Name, BP_Cur, Bp_Max, WP_Cur, WP_Max, XP_Cur, XP_Total, Description, Link,"
                       " Requested_XP, "
-                      "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                      "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC, Lastname, Stats) VALUES(?,?,?,?,?,?,?,"
+                      "?,?,?,?,?,?,?,?,?)",
                       (name, bp, bp, wp, wp, 0, 0,
-                      'No Description Set', 'No Link Set', 0, 0, 0, 0, 0))
+                      'No Description Set', 'No Link Set', 0, 0, 0, 0, 0, None, 'No Stats Set'))
             created = "Added %s with %s bp and %s wp" % (name, bp, wp)
             irc.reply(created)
             conn.commit()
@@ -235,6 +237,90 @@ class Characters(callbacks.Plugin):
 
     setlink = wrap(setlink, ['text'])
 
+    def setlastname(self, irc, msg, args, name):
+        """<name>
+
+        Set your characters last name for your description, so people don't have to look it up.
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("UPDATE Chars SET Lastname = ? WHERE Name = ?", (name, nicks))
+                conn.commit()
+                irc.reply("Last name set.")
+
+            elif nicks.islower():
+                lower = "lower"
+                raise NameError(lower)
+
+            else:
+                raise NameError(nicks)
+
+        except NameError as e:
+            conn.rollback()
+            if "lower" in e:
+                created = "Error: Your name is lower case. Please capitalise."
+                created = ircutils.mircColor(created, 4)
+                irc.reply(created)
+
+            else:
+                created = "Error: Character \"%s\" not in database." % e
+                created = ircutils.mircColor(created, 4)
+                irc.reply(created)
+
+        finally:
+            conn.close()
+
+    setlastname = wrap(setlastname, ['anything'])
+
+    def setstats(self, irc, msg, args, stats):
+        """<stats>
+
+        Set your characters stats i.e App2|Cha2
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("UPDATE Chars SET Stats = ? WHERE Name = ?", (stats, nicks))
+                conn.commit()
+                irc.reply("Character stats set.")
+
+            elif nicks.islower():
+                lower = "lower"
+                raise NameError(lower)
+
+            else:
+                raise NameError(nicks)
+
+        except NameError as e:
+            conn.rollback()
+            if "lower" in e:
+                created = "Error: Your name is lower case. Please capitalise."
+                created = ircutils.mircColor(created, 4)
+                irc.reply(created)
+
+            else:
+                created = "Error: Character \"%s\" not in database." % e
+                created = ircutils.mircColor(created, 4)
+                irc.reply(created)
+
+        finally:
+            conn.close()
+
+    setstats = wrap(setstats, ['text'])
+
     def describe(self, irc, msg, args, name):
         """<name>
 
@@ -250,12 +336,16 @@ class Characters(callbacks.Plugin):
             checkname = c.fetchone()
 
             if checkname is not None:
-                c.execute("SELECT Name, Description, Link FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+                c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
+                          name,))
                 desc = c.fetchone()
-                created = desc[0] + " " + desc[1]
+                if desc[3] is not None:
+                    created = desc[0] + " " + desc[3] + " " + desc[1]
+                else:
+                    created = desc[0] + " " + desc[1]
                 created = ircutils.mircColor(created, 6)
                 irc.reply(created, prefixNick=False)
-                created2nd = "Link: " + desc[2]
+                created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
                 created2nd = ircutils.mircColor(created2nd, 6)
                 irc.reply(created2nd, prefixNick=False)
 
@@ -904,6 +994,155 @@ class Characters(callbacks.Plugin):
 
     approvelist = wrap(approvelist)
 
+    def dmg(self, irc, msg, args):
+        """takes no arguments
+
+        check your current damage
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = ?", (nicks,))
+                dmg = c.fetchone()
+                created = str(dmg[0]) + " Agg | " + str(dmg[1]) + " Norm"
+                if dmg[0] + dmg[1] == 0:
+                    created += " * UNDAMAGED"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 1:
+                    created += " * BRUISED (0 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 2:
+                    created += " * HURT (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 3:
+                    created += " * INJURED (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 4:
+                    created += " * WOUNDED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 5:
+                    created += " * MAULED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 6:
+                    created += " * CRIPPLED (-5 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] + dmg[1] == 7:
+                    created += " * INCAPACITATED"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+
+        finally:
+            conn.close()
+
+
+    dmg = wrap(dmg)
+
+    def givedmg(self, irc, msg, args, name, amount, dmgtype):
+        """<name><amount><type>
+
+        Give players damage. Use agg or norm for type.
+        """
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+                dmg = c.fetchone()
+                combinedmg = dmg[0] + dmg[1] + amount
+
+                if dmgtype.lower() == "agg" and combinedmg > 7:
+                    newamount = amount + dmg[0]
+                    c.execute("UPDATE Chars SET Aggravated_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    conn.commit()
+                    created = "%s %s given to %s. %s has met FINAL DEATH!" % (amount, dmgtype, name, name)
+                    irc.reply(created)
+
+                elif dmgtype.lower() == "agg":
+                    newamount = amount + dmg[0]
+                    c.execute("UPDATE Chars SET Aggravated_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    conn.commit()
+                    created = "%s %s give to %s." % (amount, dmgtype, name)
+                    irc.reply(created)
+
+                elif dmgtype.lower() == "norm":
+                    newamount = amount + dmg[1]
+                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    conn.commit()
+                    created = "%s %s give to %s." % (amount, dmgtype, name)
+                    irc.reply(created)
+
+                else:
+                    raise NameError("Error: You must use 'agg' or 'norm'")
+
+        except NameError as e:
+            irc.reply(e)
+
+        finally:
+            conn.close()
+
+    givedmg = wrap(givedmg, ['anything', 'int', 'anything'])
+
+    def heal(self, irc, msg, args, amount, dmgtype):
+        """<amount> <type>
+
+        Heal <amount> of <type> damage. Make sure you have enough BP.
+        """
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (nicks,))
+            checkname = c.fetchone()
+
+            if checkname is not None:
+                c.execute("SELECT BP_Cur, Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = ?", (nicks,))
+                info = c.fetchone()
+                #first check what type of damage it is
+                if dmgtype.lower() == "agg":
+                    #do they have enough bp? its 5bp per agg healed
+                    amountbp = amount * 5
+                    newbp = info[0] - amountbp
+                    if newbp >= 0:
+                        toheal = info[0] - amount
+                        # if we heal too much
+                        if toheal < 0:
+                            raise ArithmeticError("You don't have that much damage to heal.")
+
+                        c.execute("UPDATE Chars SET Aggravated_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
+                                  nicks))
+                        conn.commit()
+                        created = "%s %s damage healed for %s BP." % (amount, dmgtype, amountbp)
+                        irc.reply(created)
+
+                    else:
+                        raise ArithmeticError("You do not have enough BP!")
+
+                elif dmgtype.lower() == "norm":
+                    newbp = info[1] - amount
+                    if newbp >= 0:
+                        toheal = info[1] - amount
+
+
+        except ArithmeticError as e:
+            irc.reply(e)
+
+        finally:
+            conn.close()
+
+
+    heal = wrap(heal, ['int', 'anything'])
+
+
     def npc(self, irc, msg, args, name, numset):
         """<name> <1 or 0>
 
@@ -926,6 +1165,16 @@ class Characters(callbacks.Plugin):
             conn.close()
 
     npc = wrap(npc, ['anything', 'int'])
+
+#    def insert(self, irc, msgs, args):
+#
+#     conn = sqlite3.connect('characters.db')
+#      c = conn.cursor()
+#      c.execute("ALTER TABLE Chars ADD COLUMN Stats TEXT")
+#        conn.commit()
+#        conn.close()
+#
+#    insert = wrap(insert)
 
     def nightly(self, irc, msg, args):
         """takes no arguments
