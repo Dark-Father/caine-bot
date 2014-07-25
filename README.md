@@ -10,7 +10,7 @@ IRC plugin for supybot
 
 * dice rolling
 * weather system
-* combat system tracking - needs light polishing
+* combat system tracking
 * Extras: 
   * stfree
 
