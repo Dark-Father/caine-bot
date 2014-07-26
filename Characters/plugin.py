@@ -287,7 +287,7 @@ class Characters(callbacks.Plugin):
         Gets the description of the named character
         """
 
-        name = str(name)
+        name = str.capitalize(name)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -295,37 +295,20 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
                           name,))
                 desc = c.fetchone()
-
-                #show description
-                if desc[1] == "No Description Set":
-                    created = "There is no description set for character."
-                    irc.reply(created)
-                elif desc[3]:
+                if desc[3] is not None:
                     created = desc[0] + " " + desc[3] + " " + desc[1]
-                    irc.reply(created, prefixNick=False)
                 else:
                     created = desc[0] + " " + desc[1]
-                    created = ircutils.mircColor(created, 6)
-                    irc.reply(created, prefixNick=False)
+                created = ircutils.mircColor(created, 6)
+                irc.reply(created, prefixNick=False)
+                created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
+                created2nd = ircutils.mircColor(created2nd, 6)
+                irc.reply(created2nd, prefixNick=False)
 
-                #show link and stats if description is also set
-                if desc[1] != "No Description Set":
-                    if desc[2] != "No Link Set" and desc[4] != "No Stats Set":
-                        created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
-                        created2nd = ircutils.mircColor(created2nd, 6)
-                        irc.reply(created2nd, prefixNick=False)
-                    elif desc[2] != "No Link Set" and desc[4] == "No Stats Set":
-                        created2nd = "Link: " + desc[2]
-                        created2nd = ircutils.mircColor(created2nd, 6)
-                        irc.reply(created2nd, prefixNick=False)
-                    elif desc[2] == "No Link Set" and desc[4] != "No Stats Set":
-                        created2nd = "Stats: " + desc[4]
-                        created2nd = ircutils.mircColor(created2nd, 6)
-                        irc.reply(created2nd, prefixNick=False)
             else:
                 raise NameError(name)
 
