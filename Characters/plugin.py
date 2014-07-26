@@ -339,16 +339,33 @@ class Characters(callbacks.Plugin):
                 c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
                           name,))
                 desc = c.fetchone()
-                if desc[3] is not None:
+
+                #show description
+                if desc[1] == "No Description Set":
+                    created = "There is no description set for character."
+                    irc.reply(created)
+                elif desc[3]:
                     created = desc[0] + " " + desc[3] + " " + desc[1]
+                    irc.reply(created, prefixNick=False)
                 else:
                     created = desc[0] + " " + desc[1]
-                created = ircutils.mircColor(created, 6)
-                irc.reply(created, prefixNick=False)
-                created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
-                created2nd = ircutils.mircColor(created2nd, 6)
-                irc.reply(created2nd, prefixNick=False)
+                    created = ircutils.mircColor(created, 6)
+                    irc.reply(created, prefixNick=False)
 
+                #show link and stats if description is also set
+                if desc[1] != "No Description Set":
+                    if desc[2] != "No Link Set" and desc[4] != "No Stats Set":
+                        created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
+                        created2nd = ircutils.mircColor(created2nd, 6)
+                        irc.reply(created2nd, prefixNick=False)
+                    elif desc[2] != "No Link Set" and desc[4] == "No Stats Set":
+                        created2nd = "Link: " + desc[2]
+                        created2nd = ircutils.mircColor(created2nd, 6)
+                        irc.reply(created2nd, prefixNick=False)
+                    elif desc[2] == "No Link Set" and desc[4] != "No Stats Set":
+                        created2nd = "Stats: " + desc[4]
+                        created2nd = ircutils.mircColor(created2nd, 6)
+                        irc.reply(created2nd, prefixNick=False)
             else:
                 raise NameError(name)
 
@@ -1230,13 +1247,17 @@ class Characters(callbacks.Plugin):
 
     def ctest(self, irc, msg, args):
         """Let's see if this works"""
-        irc.reply("ctest reporting in")
-        c.execute("SELECT * FROM Chars")
-        rows = c.fetchall()
+        try:
+            irc.reply("ctest reporting in")
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            c.execute("SELECT * FROM Chars")
+            rows = c.fetchall()
 
-        for row in rows:
-            irc.reply(row)
-
+            for row in rows:
+                irc.reply(row)
+        finally:
+            conn.close()
     ctest = wrap(ctest)
 
 #    def logtest(self,irc, msg, args):
