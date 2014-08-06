@@ -131,14 +131,11 @@ class Combat(callbacks.Plugin):
         """Lists the current combat initiative order"""
         try:
             currentChannel = msg.args[0]
-            bot = str.capitalize(irc.nick)
             roster = self.roundlist[currentChannel]
             diff = list(set([x.lower() for x in list(irc.state.channels[currentChannel].users)]) -
-                        set([x.lower() for x in list(self.roundlist[currentChannel])]))
+                        set([x.lower() for x in list(self.roundlist[currentChannel])]) -
+                        set([x.lower() for x in list(irc.state.channels[currentChannel].ops)]))
             diff = [x.capitalize() for x in diff]
-            if bot in diff:
-                diff.pop(diff.index(bot))
-            diff = [ircutils.mircColor(x, 4) for x in diff]
 
             if roster:
                 irc.reply("#####################", prefixNick=False)
