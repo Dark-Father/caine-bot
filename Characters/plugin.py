@@ -345,7 +345,10 @@ class Characters(callbacks.Plugin):
                     created = desc[0] + " " + desc[1]
                 created = ircutils.mircColor(created, 6)
                 irc.reply(created, prefixNick=False)
-                created2nd = "Link: " + desc[2] + " * " + "Stats: " + desc[4]
+                stats = desc[4]
+                if stats is None:
+                    stats = "No Stats Set."
+                created2nd = "Link: " + desc[2] + " * " + "Stats: " + stats
                 created2nd = ircutils.mircColor(created2nd, 6)
                 irc.reply(created2nd, prefixNick=False)
 
@@ -1035,10 +1038,15 @@ class Characters(callbacks.Plugin):
                 elif dmg[0] + dmg[1] == 7:
                     created += " * INCAPACITATED"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[1] == 8:
+                    created += " * TORPORED"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
+                elif dmg[0] == 8:
+                    created += " * FINAL DEATH"
+                    irc.queueMsg(ircmsgs.notice(nicks, created))
 
         finally:
             conn.close()
-
 
     dmg = wrap(dmg)
 
@@ -1061,23 +1069,37 @@ class Characters(callbacks.Plugin):
 
                 if dmgtype.lower() == "agg" and combinedmg > 7:
                     newamount = amount + dmg[0]
-                    c.execute("UPDATE Chars SET Aggravated_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    c.execute("UPDATE Chars SET Aggravated_Dmg = 8 WHERE Name = ? COLLATE NOCASE", (name,))
                     conn.commit()
                     created = "%s %s given to %s. %s has met FINAL DEATH!" % (amount, dmgtype, name, name)
+                    irc.reply(created)
+
+                elif dmgtype.lower() == "norm" and combinedmg == 7:
+                    newamount = amount + dmg[1]
+                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    conn.commit()
+                    created = "%s %s given to %s. %s has been INCAPACITATED!" % (amount, dmgtype, name, name)
+                    irc.reply(created)
+
+                elif dmgtype.lower() == "norm" and combinedmg > 7:
+                    newamount = amount + dmg[1]
+                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
+                    conn.commit()
+                    created = "%s %s given to %s. %s has been TORPRED!" % (amount, dmgtype, name, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "agg":
                     newamount = amount + dmg[0]
                     c.execute("UPDATE Chars SET Aggravated_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
                     conn.commit()
-                    created = "%s %s give to %s." % (amount, dmgtype, name)
+                    created = "%s %s given to %s." % (amount, dmgtype, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "norm":
                     newamount = amount + dmg[1]
                     c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
                     conn.commit()
-                    created = "%s %s give to %s." % (amount, dmgtype, name)
+                    created = "%s %s given to %s." % (amount, dmgtype, name)
                     irc.reply(created)
 
                 else:
@@ -1113,7 +1135,7 @@ class Characters(callbacks.Plugin):
                     amountbp = amount * 5
                     newbp = info[0] - amountbp
                     if newbp >= 0:
-                        toheal = info[0] - amount
+                        toheal = info[1] - amount
                         # if we heal too much
                         if toheal < 0:
                             raise ArithmeticError("You don't have that much damage to heal.")
@@ -1128,10 +1150,21 @@ class Characters(callbacks.Plugin):
                         raise ArithmeticError("You do not have enough BP!")
 
                 elif dmgtype.lower() == "norm":
-                    newbp = info[1] - amount
+                    newbp = info[0] - amount
                     if newbp >= 0:
-                        toheal = info[1] - amount
+                        toheal = info[2] - amount
 
+                        if toheal < 0:
+                            raise ArithmeticError("You don't have that much damage to heal.")
+
+                        c.execute("UPDATE Chars SET Normal_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
+                                  nicks))
+                        conn.commit()
+                        created = "%s %s damage healed for %s BP" % (amount, dmgtype, amount)
+                        irc.reply(created)
+
+                    else:
+                        raise ArithmeticError("You do not have enough BP!")
 
         except ArithmeticError as e:
             irc.reply(e)
@@ -1141,7 +1174,6 @@ class Characters(callbacks.Plugin):
 
 
     heal = wrap(heal, ['int', 'anything'])
-
 
     def npc(self, irc, msg, args, name, numset):
         """<name> <1 or 0>
@@ -1228,16 +1260,16 @@ class Characters(callbacks.Plugin):
             conn.close()
     weekly = wrap(weekly)
 
-    def ctest(self, irc, msg, args):
-        """Let's see if this works"""
-        irc.reply("ctest reporting in")
-        c.execute("SELECT * FROM Chars")
-        rows = c.fetchall()
-
-        for row in rows:
-            irc.reply(row)
-
-    ctest = wrap(ctest)
+#    def ctest(self, irc, msg, args):
+#        """Let's see if this works"""
+#        irc.reply("ctest reporting in")
+#        c.execute("SELECT * FROM Chars")
+#        rows = c.fetchall()
+#
+#        for row in rows:
+#            irc.reply(row)
+#
+#    ctest = wrap(ctest)
 
 #    def logtest(self,irc, msg, args):
 #        irc.reply("Logtest reporting in")
