@@ -45,7 +45,7 @@ __author__ = "Liam Burke"
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
-__contributors__ = {Author1: "David Rickman"}
+__contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
 __url__ = 'https://github.com/Elysia-Online/caine-bot' # 'http://supybot.com/Members/yourname/Characters/download'

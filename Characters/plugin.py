@@ -159,7 +159,7 @@ class Characters(callbacks.Plugin):
 
         Sets a description for your character
         """
-        nicks = msg.nick
+        nicks = str.capitalize(msg.nick)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -171,25 +171,15 @@ class Characters(callbacks.Plugin):
                 c.execute("UPDATE Chars SET Description = ? WHERE Name = ?", (description, nicks))
                 conn.commit()
                 irc.reply("Description Set")
-
-            elif nicks.islower():
-                lower = "lower"
-                raise NameError(lower)
-
             else:
                 raise NameError(nicks)
 
         except NameError as e:
             conn.rollback()
-            if "lower" in e:
-                created = "Error: Your name is lower case. Please capitalise."
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
-
-            else:
-                created = "Error: Character \"%s\" not in database." % e
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
+            nicks = msg.nick
+            created = "Error: Character \"%s\" not in database." % e
+            created = ircutils.mircColor(created, 4)
+            irc.reply(created)
 
         finally:
             conn.close()
@@ -200,7 +190,7 @@ class Characters(callbacks.Plugin):
 
         Sets a link for your character description
         """
-        nicks = msg.nick
+        nicks = str.capitalize(msg.nick)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -212,25 +202,15 @@ class Characters(callbacks.Plugin):
                 c.execute("UPDATE Chars SET Link = ? WHERE Name = ?", (url, nicks))
                 conn.commit()
                 irc.reply("Link Set")
-
-            elif nicks.islower():
-                lower = "lower"
-                raise NameError(lower)
-
             else:
                 raise NameError(nicks)
 
         except NameError as e:
             conn.rollback()
-            if "lower" in e:
-                created = "Error: Your name is lower case. Please capitalise."
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
-
-            else:
-                created = "Error: Character \"%s\" not in database." % e
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
+            nicks = msg.nick
+            created = "Error: Character \"%s\" not in database." % e
+            created = ircutils.mircColor(created, 4)
+            irc.reply(created)
 
         finally:
             conn.close()
@@ -242,7 +222,7 @@ class Characters(callbacks.Plugin):
 
         Set your characters last name for your description, so people don't have to look it up.
         """
-        nicks = msg.nick
+        nicks = str.capitalize(msg.nick)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -250,29 +230,19 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("UPDATE Chars SET Lastname = ? WHERE Name = ?", (name, nicks))
                 conn.commit()
                 irc.reply("Last name set.")
-
-            elif nicks.islower():
-                lower = "lower"
-                raise NameError(lower)
-
             else:
                 raise NameError(nicks)
 
         except NameError as e:
             conn.rollback()
-            if "lower" in e:
-                created = "Error: Your name is lower case. Please capitalise."
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
-
-            else:
-                created = "Error: Character \"%s\" not in database." % e
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
+            nicks = msg.nick
+            created = "Error: Character \"%s\" not in database." % e
+            created = ircutils.mircColor(created, 4)
+            irc.reply(created)
 
         finally:
             conn.close()
@@ -284,7 +254,7 @@ class Characters(callbacks.Plugin):
 
         Set your characters stats i.e App2|Cha2
         """
-        nicks = msg.nick
+        nicks = str.capitalize(msg.nick)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -292,29 +262,19 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("UPDATE Chars SET Stats = ? WHERE Name = ?", (stats, nicks))
                 conn.commit()
                 irc.reply("Character stats set.")
-
-            elif nicks.islower():
-                lower = "lower"
-                raise NameError(lower)
-
             else:
                 raise NameError(nicks)
 
         except NameError as e:
             conn.rollback()
-            if "lower" in e:
-                created = "Error: Your name is lower case. Please capitalise."
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
-
-            else:
-                created = "Error: Character \"%s\" not in database." % e
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
+            nicks = msg.nick
+            created = "Error: Character \"%s\" not in database." % e
+            created = ircutils.mircColor(created, 4)
+            irc.reply(created)
 
         finally:
             conn.close()
@@ -327,7 +287,7 @@ class Characters(callbacks.Plugin):
         Gets the description of the named character
         """
 
-        name = str(name)
+        name = str.capitalize(name)
         try:
             conn = sqlite3.connect('characters.db')
             conn.text_factory = str
@@ -335,7 +295,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
                           name,))
                 desc = c.fetchone()
@@ -370,7 +330,7 @@ class Characters(callbacks.Plugin):
         Check your characters BP
         """
 
-        nicks = msg.nick
+        nicks = str.capitalize(msg.nick)
         sep = '_'
         nicks = nicks.split(sep, 1)[0]
 
@@ -381,32 +341,23 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
                 bp = c.fetchone()
                 bpcur = str(bp[0])
                 bpmax = str(bp[1])
                 created = "Available Blood (" + bpcur + "/" + bpmax + ")"
                 irc.queueMsg(ircmsgs.notice(nicks, created))
-
-            elif nicks.islower():
-                lower = "lower"
-                raise NameError(lower)
-
             else:
+                nicks = msg.nick
                 raise NameError(nicks)
 
         except NameError as e:
             conn.rollback()
-            if "lower" in e:
-                created = "Error: Your name is lower case. Please capitalise."
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
-
-            else:
-                created = "Error: Character \"%s\" not in database." % e
-                created = ircutils.mircColor(created, 4)
-                irc.reply(created)
+            nicks = msg.nick
+            created = "Error: Character \"%s\" not in database." % e
+            created = ircutils.mircColor(created, 4)
+            irc.reply(created)
 
         finally:
             conn.close()
@@ -429,7 +380,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT count(*) FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
                 bp = c.fetchone()
                 if bpnum is None and bp[0] != 0:
@@ -476,7 +427,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newbp, name))
                 conn.commit()
                 created = "New BP set to %s for %s" % (newbp, name)
@@ -502,7 +453,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 bp = c.fetchone()
                 bpcur = str(bp[0])
@@ -534,7 +485,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 for s in range(num):
                     die = random.randint(1, 10)
 
@@ -605,7 +556,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
                 wp = c.fetchone()
                 wpcur = str(wp[0])
@@ -639,7 +590,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT count(*) FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
                 wp = c.fetchone()
                 if wpnum is None and wp[0] != 0:
@@ -686,7 +637,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newwp, name))
                 conn.commit()
                 created = "New WP set to %s for %s" % (newwp, name)
@@ -712,7 +663,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 wp = c.fetchone()
                 wpcur = str(wp[0])
@@ -741,7 +692,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (nicks,))
                 xp = c.fetchone()
                 xpcur = str(xp[0])
@@ -771,7 +722,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = str(xp[0])
@@ -796,7 +747,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = int(xp[0])
@@ -827,7 +778,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT XP_Cur FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
                 xp = c.fetchone()
                 xpcur = int(xp[0])
@@ -869,13 +820,13 @@ class Characters(callbacks.Plugin):
 
                 irc.queueMsg(ircmsgs.notice(nicks, created))
 
-            elif checkname is not None and reqname is None:
+            elif checkname and reqname:
                 c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (nicks, amount))
                 conn.commit()
                 created = "You have requested %s XP" % amount
                 irc.queueMsg(ircmsgs.notice(nicks, created))
 
-            elif checkname is not None and reqname is not None:
+            elif checkname and reqname:
                 c.execute("UPDATE Request SET Amount = ? WHERE Name = ?", (amount, nicks))
                 conn.commit()
                 created = "You have requested %s XP" % amount
@@ -927,7 +878,7 @@ class Characters(callbacks.Plugin):
             secname = c.fetchone()
 
             if command == 'remove':
-                if checkname is not None:
+                if checkname:
                     c.execute("DELETE FROM Request WHERE Name =? COLLATE NOCASE", (name,))
                     conn.commit()
                     created = "%s removed from requestxp list." % name
@@ -937,7 +888,7 @@ class Characters(callbacks.Plugin):
                     irc.reply("Error: Name not found")
 
             elif command == 'add':
-                if checkname is None and secname is not None:
+                if checkname is None and secname:
                     c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (name, amount))
                     conn.commit()
                     created = "%s added with %s XP requested." % (name, amount)
@@ -950,7 +901,7 @@ class Characters(callbacks.Plugin):
                     irc.reply("Error: Name already exists in list. Use change instead.")
 
             elif command == 'change':
-                if checkname is not None:
+                if checkname:
                     c.execute("UPDATE Request SET Amount = ? WHERE Name = ? COLLATE NOCASE", (amount, name))
                     conn.commit()
                     created = "%s changed to %s XP requested." % (name, amount)
@@ -1010,32 +961,34 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = ?", (nicks,))
                 dmg = c.fetchone()
-                created = str(dmg[0]) + " Agg | " + str(dmg[1]) + " Norm"
-                if dmg[0] + dmg[1] == 0:
+                agg = dmg[0]
+                norm = dmg[1]
+                created = str(agg) + " Agg | " + str(norm) + " Norm"
+                if agg + norm == 0:
                     created += " * UNDAMAGED"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 1:
+                elif agg + norm == 1:
                     created += " * BRUISED (0 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 2:
+                elif agg + norm == 2:
                     created += " * HURT (-1 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 3:
+                elif agg + norm == 3:
                     created += " * INJURED (-1 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 4:
+                elif agg + norm == 4:
                     created += " * WOUNDED (-2 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 5:
+                elif agg + norm == 5:
                     created += " * MAULED (-2 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 6:
+                elif agg + norm == 6:
                     created += " * CRIPPLED (-5 Dice Penalty)"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] + dmg[1] == 7:
+                elif agg + norm == 7:
                     created += " * INCAPACITATED"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 elif dmg[1] == 8:
@@ -1103,7 +1056,7 @@ class Characters(callbacks.Plugin):
                     irc.reply(created)
 
                 else:
-                    raise NameError("Error: You must use 'agg' or 'norm'")
+                    raise NameError("Error: You must use !givedmg <value> <agg|norm>")
 
         except NameError as e:
             irc.reply(e)
@@ -1126,7 +1079,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (nicks,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                 c.execute("SELECT BP_Cur, Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = ?", (nicks,))
                 info = c.fetchone()
                 #first check what type of damage it is
@@ -1187,7 +1140,7 @@ class Characters(callbacks.Plugin):
             c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
             checkname = c.fetchone()
 
-            if checkname is not None:
+            if checkname:
                     c.execute("UPDATE Chars SET NPC = ? WHERE Name = ? COLLATE NOCASE", (numset, name))
                     conn.commit()
                     created = "NPC set to %s" % numset
@@ -1260,6 +1213,7 @@ class Characters(callbacks.Plugin):
             conn.close()
     weekly = wrap(weekly)
 
+<<<<<<< HEAD
 #    def ctest(self, irc, msg, args):
 #        """Let's see if this works"""
 #        irc.reply("ctest reporting in")
@@ -1270,6 +1224,22 @@ class Characters(callbacks.Plugin):
 #            irc.reply(row)
 #
 #    ctest = wrap(ctest)
+=======
+    # def ctest(self, irc, msg, args):
+    #     """Let's see if this works"""
+    #     try:
+    #         irc.reply("ctest reporting in")
+    #         conn = sqlite3.connect('characters.db')
+    #         c = conn.cursor()
+    #         c.execute("SELECT * FROM Chars")
+    #         rows = c.fetchall()
+    #
+    #         for row in rows:
+    #             irc.reply(row)
+    #     finally:
+    #         conn.close()
+    # ctest = wrap(ctest)
+>>>>>>> origin/master
 
 #    def logtest(self,irc, msg, args):
 #        irc.reply("Logtest reporting in")
