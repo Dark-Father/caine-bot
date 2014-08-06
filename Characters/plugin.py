@@ -1221,30 +1221,30 @@ class Characters(callbacks.Plugin):
             conn.close()
     weekly = wrap(weekly)
 
-    def ctest(self, irc, msg, args):
-        """Let's see if this works"""
-        irc.reply("ctest reporting in")
-        conn = sqlite3.connect('characters.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM Chars")
-        rows = c.fetchall()
-
-        for row in rows:
-            irc.reply(row)
-
-    ctest = wrap(ctest)
-
-    def logtest(self, irc, msg, args):
-        conn = sqlite3.connect('characters.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM XPlog")
-
-        rows = c.fetchall()
-
-        for row in rows:
-            irc.reply(row)
-
-    logtest = wrap(logtest)
+    # def ctest(self, irc, msg, args):
+    #     """Let's see if this works"""
+    #     irc.reply("ctest reporting in")
+    #     conn = sqlite3.connect('characters.db')
+    #     c = conn.cursor()
+    #     c.execute("SELECT * FROM Chars")
+    #     rows = c.fetchall()
+    #
+    #     for row in rows:
+    #         irc.reply(row)
+    #
+    # ctest = wrap(ctest)
+    #
+    # def logtest(self, irc, msg, args):
+    #     conn = sqlite3.connect('characters.db')
+    #     c = conn.cursor()
+    #     c.execute("SELECT * FROM XPlog")
+    #
+    #     rows = c.fetchall()
+    #
+    #     for row in rows:
+    #         irc.reply(row)
+    #
+    # logtest = wrap(logtest)
 
 Class = Characters
 
