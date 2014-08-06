@@ -691,13 +691,21 @@ class Characters(callbacks.Plugin):
             c = conn.cursor()
             c.execute("SELECT Name FROM Chars WHERE Name = ?", (nicks,))
             checkname = c.fetchone()
+            c.execute("SELECT Amount FROM Request WHERE Name = ?", (nicks,))
+            reqname = c.fetchone()
 
             if checkname:
                 c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (nicks,))
                 xp = c.fetchone()
                 xpcur = str(xp[0])
                 xpmax = str(xp[1])
-                created = "Available Experience (" + xpcur + "/" + xpmax + ")"
+                if reqname:
+                    request = str(reqname[0])
+                    created = "Available Experience (" + xpcur + "/" + xpmax + ")" + \
+                              "- Requested " + request + "XP for the week."
+                else:
+                    created = "Available Experience (" + xpcur + "/" + xpmax + ")"
+
                 irc.queueMsg(ircmsgs.notice(nicks, created))
             else:
                 irc.reply("Error: Name not found.")
@@ -820,7 +828,7 @@ class Characters(callbacks.Plugin):
 
                 irc.queueMsg(ircmsgs.notice(nicks, created))
 
-            elif checkname and reqname:
+            elif checkname and not reqname:
                 c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (nicks, amount))
                 conn.commit()
                 created = "You have requested %s XP" % amount
@@ -991,10 +999,10 @@ class Characters(callbacks.Plugin):
                 elif agg + norm == 7:
                     created += " * INCAPACITATED"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[1] == 8:
+                elif norm == 8:
                     created += " * TORPORED"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
-                elif dmg[0] == 8:
+                elif agg == 8:
                     created += " * FINAL DEATH"
                     irc.queueMsg(ircmsgs.notice(nicks, created))
 
@@ -1213,45 +1221,30 @@ class Characters(callbacks.Plugin):
             conn.close()
     weekly = wrap(weekly)
 
-<<<<<<< HEAD
-#    def ctest(self, irc, msg, args):
-#        """Let's see if this works"""
-#        irc.reply("ctest reporting in")
-#        c.execute("SELECT * FROM Chars")
-#        rows = c.fetchall()
-#
-#        for row in rows:
-#            irc.reply(row)
-#
-#    ctest = wrap(ctest)
-=======
-    # def ctest(self, irc, msg, args):
-    #     """Let's see if this works"""
-    #     try:
-    #         irc.reply("ctest reporting in")
-    #         conn = sqlite3.connect('characters.db')
-    #         c = conn.cursor()
-    #         c.execute("SELECT * FROM Chars")
-    #         rows = c.fetchall()
-    #
-    #         for row in rows:
-    #             irc.reply(row)
-    #     finally:
-    #         conn.close()
-    # ctest = wrap(ctest)
->>>>>>> origin/master
+    def ctest(self, irc, msg, args):
+        """Let's see if this works"""
+        irc.reply("ctest reporting in")
+        conn = sqlite3.connect('characters.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM Chars")
+        rows = c.fetchall()
 
-#    def logtest(self,irc, msg, args):
-#        irc.reply("Logtest reporting in")
-#        c.execute("SELECT * FROM XPlog")
-#
-#       rows = c.fetchall()
-#
-#        for row in rows:
-#            irc.reply(row)
-#
-#   logtest = wrap(logtest)
+        for row in rows:
+            irc.reply(row)
 
+    ctest = wrap(ctest)
+
+    def logtest(self, irc, msg, args):
+        conn = sqlite3.connect('characters.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM XPlog")
+
+        rows = c.fetchall()
+
+        for row in rows:
+            irc.reply(row)
+
+    logtest = wrap(logtest)
 
 Class = Characters
 
