@@ -63,6 +63,7 @@ class Combat(callbacks.Plugin):
     def combat(self, irc, msg, args, powered):
         """Start combat with: !combat start 
         End combat with: !combat end"""
+        nicks = msg.nick
         currentChannel = msg.args[0]
         stchannel = "#stchambers"
         already = "Combat is already started. Join combat: !inits. Declare !bp spends now."
@@ -86,7 +87,7 @@ class Combat(callbacks.Plugin):
                 irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
                           % str(self.round_count[currentChannel]), prefixNick=False)
                 #Notify #stchambers that a fight has broken out in the channel.
-                text = "A fight has broken out in: %s" % currentChannel
+                text = "A fight has broken out in: %s started by %s" % (currentChannel, nicks)
                 irc.sendMsg(ircmsgs.notice(stchannel, text))
 
             elif powered == "end" and currentChannel in self.channel_lock:
