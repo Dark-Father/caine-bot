@@ -1011,6 +1011,62 @@ class Characters(callbacks.Plugin):
 
     dmg = wrap(dmg)
 
+    def dmgcheck(self, irc, msg, args, name):
+        """takes <name> argument
+
+        check a players curent damage
+        """
+
+        nicks = msg.nick
+        try:
+            conn = sqlite3.connect('characters.db')
+            conn.text_factory = str
+            c = conn.cursor()
+            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+
+            if checkname:
+                c.execute("SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = ?", (name,))
+                dmg = c.fetchone()
+                agg = dmg[0]
+                norm = dmg[1]
+                created = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
+                if agg + norm == 0:
+                    created += " * UNDAMAGED"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 1:
+                    created += " * BRUISED (0 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 2:
+                    created += " * HURT (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 3:
+                    created += " * INJURED (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 4:
+                    created += " * WOUNDED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 5:
+                    created += " * MAULED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 6:
+                    created += " * CRIPPLED (-5 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg + norm == 7:
+                    created += " * INCAPACITATED"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif norm == 8:
+                    created += " * TORPORED"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+                elif agg == 8:
+                    created += " * FINAL DEATH"
+                    irc.queueMsg(ircmsgs.privmsg(nicks, created))
+
+        finally:
+            conn.close()
+
+    dmgcheck = wrap(dmgcheck, ['anything'])
+
     def givedmg(self, irc, msg, args, name, amount, dmgtype):
         """<name><amount><type>
 
@@ -1220,6 +1276,32 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
     weekly = wrap(weekly)
+
+    def charlog(self, irc, msg, args, name):
+        """takes the <name> argument
+
+        Gives a log of characters XP spends
+        """
+
+        try:
+            conn = sqlite3.connect('characters.db')
+            c = conn.cursor()
+            conn.text_factory = str
+            c.execute("SELECT Date, ST, Amount, Reason FROM XPlog WHERE Name = ? COLLATE NOCASE", (name,))
+            checkname = c.fetchone()
+            logdata = c.fetchall()
+
+            if checkname is not None:
+                reply = ('Date', 'ST Name', 'XP Spent', 'Reason')
+                irc.reply(reply)
+                for row in logdata:
+                    irc.reply(row)
+
+        finally:
+            conn.close()
+
+    charlog = wrap(charlog, ['anything'])
+
 
     # def ctest(self, irc, msg, args):
     #     """Let's see if this works"""
