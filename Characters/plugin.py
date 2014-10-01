@@ -517,7 +517,7 @@ class Characters(callbacks.Plugin):
                     c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
                     conn.commit()
 
-                elif total > 0:
+                elif total == 1:
                     total = "Gained 3 bp"
                     dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
                                                                       str(difficulty))
@@ -534,6 +534,26 @@ class Characters(callbacks.Plugin):
                         conn.commit()
                     else:
                         bpcur += 3
+                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
+                        conn.commit()
+
+                elif total > 1:
+                    total = "Gained 6 bp"
+                    dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
+                                                                      str(difficulty))
+                    irc.reply(dicepool, private=True)
+                    c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
+                    conn.commit()
+                    c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
+                    bp = c.fetchone()
+                    bpcur = int(bp[0])
+                    bpmax = int(bp[1])
+                    bptest = bpmax - bpcur
+                    if bptest <= 6:
+                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpmax, nicks))
+                        conn.commit()
+                    else:
+                        bpcur += 6
                         c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
                         conn.commit()
         finally:
