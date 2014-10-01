@@ -956,7 +956,7 @@ class Characters(callbacks.Plugin):
 
     approvelist = wrap(approvelist)
 
-    def dmg(self, irc, msg, args):
+    def getdmg(self, irc, msg, args):
         """takes no arguments
 
         check your current damage
@@ -1009,7 +1009,7 @@ class Characters(callbacks.Plugin):
         finally:
             conn.close()
 
-    dmg = wrap(dmg)
+    getdmg = wrap(getdmg)
 
     def dmgcheck(self, irc, msg, args, name):
         """takes <name> argument
