@@ -1,11 +1,11 @@
-###
+# ##
 # Copyright (c) 2014, David Rickman
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#   * Redistributions of source code must retain the above copyright notice,
+# * Redistributions of source code must retain the above copyright notice,
 #     this list of conditions, and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions, and the following disclaimer in the
@@ -40,8 +40,16 @@ class Helper(callbacks.Plugin):
     This should describe *how* to use this plugin."""
     threaded = True
 
+
+    def __init__(self, irc):
+        self.__parent = super(Combat, self)
+        self.__parent.__init__(irc)
+
+
     def discipline(self, irc, msg, args, power, level):
         pass
+
+
 
 
 Class = Helper
