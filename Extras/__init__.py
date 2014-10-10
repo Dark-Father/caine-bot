@@ -47,7 +47,7 @@ __author__ = supybot.Author('David Rickman', 'freedomischaos', 'rickmand@gmail.c
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = '' # 'http://supybot.com/Members/yourname/Extras/download'
+__url__ = 'https://github.com/Elysia-Online/caine-bot'
 
 import config
 import plugin
