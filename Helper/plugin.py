@@ -34,20 +34,26 @@ import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
+from json import load
+from urllib2 import urlopen
 
 class Helper(callbacks.Plugin):
-    """Add the help for "@plugin help Helper" here
-    This should describe *how* to use this plugin."""
+    """Provides rules text."""
     threaded = True
 
 
     def __init__(self, irc):
-        self.__parent = super(Combat, self)
+        self.__parent = super(Helper, self)
         self.__parent.__init__(irc)
 
 
-    def discipline(self, irc, msg, args, power, level):
-        pass
+    def rules(self, irc, msg, args, type, power):
+        URL = "http://192.168.1.251/data.json"
+        d = load(urlopen(URL))
+        irc.reply(d[type][power])
+
+    rules = wrap(rules, [optional('text'), optional('text')])
+
 
 
 
