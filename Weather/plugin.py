@@ -28,15 +28,13 @@
 
 ###
 
-import supybot.utils as utils
+from json import load
+from urllib2 import urlopen
+
 from supybot.commands import *
-import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
-from json import load
-from urllib2 import urlopen
-import time
 
 #ZIP Code is Benton Heights, MI: 49022
 
@@ -48,7 +46,7 @@ class Weather(callbacks.Plugin):
         self.__parent.__init__(irc)
 
     def weather(self, irc, msg, args):
-        """I don't take kindly to back-talking.
+        """The rain in Spain falls mainly on the plain.
         """
         _URL = "http://api.openweathermap.org/data/2.5/weather?id="
         _CITY_ID = "4985711"
