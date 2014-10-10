@@ -40,6 +40,9 @@ class Helper(callbacks.Plugin):
     This should describe *how* to use this plugin."""
     threaded = True
 
+    def discipline(self, irc, msg, args, power, level):
+        pass
+
 
 Class = Helper
 
