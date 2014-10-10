@@ -108,24 +108,26 @@ class Combat(callbacks.Plugin):
         """Roll to join combat. Use !inits <dex+wits>.
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
+        try:
+            #put the initiative list together
+            if self.channel_lock[currentChannel] is True:
+                #roll init
+                rolled = inits + random.randint(1, 10)
 
-        #put the initiative list together
-        if self.channel_lock[currentChannel] is True:
-            #roll init
-            rolled = inits + random.randint(1, 10)
+                #check to see if a NPC was passed.
+                if not NPC:
+                    character = msg.nick
+                else:
+                    character = NPC
 
-            #check to see if a NPC was passed.
-            if not NPC:
-                character = msg.nick
+                #join it in the round list dictionary, output reply.
+                self.roundlist[currentChannel][character] = rolled
+                joined = "%s rolled a: %s" % (ircutils.mircColor(character, 12), self.roundlist[currentChannel][character])
+                irc.reply(joined, prefixNick=False)
             else:
-                character = NPC
-
-            #join it in the round list dictionary, output reply.
-            self.roundlist[currentChannel][character] = rolled
-            joined = "%s rolled a: %s" % (ircutils.mircColor(character, 12), self.roundlist[currentChannel][character])
-            irc.reply(joined, prefixNick=False)
-        else:
-            irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
+                irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
+        except KeyError:
+                irc.error("Combat is not started. Start combat with: !combat start", Raise=True)
     inits = wrap(inits, ['int', optional('text')])
 
     def showinits(self, irc, msg, args):
