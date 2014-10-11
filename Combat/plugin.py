@@ -161,7 +161,7 @@ class Combat(callbacks.Plugin):
 
         self.round_count[currentChannel] += 1
         self.roundlist[currentChannel].clear()
-        irc.reply("Round: %s Started. . To join: !inits. Declare !bp spends now."
+        irc.reply("Round: %s Started. To join: !inits. Declare !bp spends now."
                   % str(self.round_count[currentChannel]), prefixNick=False)
     newround = wrap(newround)
 
