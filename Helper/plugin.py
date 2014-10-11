@@ -50,7 +50,7 @@ class Helper(callbacks.Plugin):
     def rules(self, irc, msg, args, type, power):
         URL = "http://192.168.1.251/data.json"
         d = load(urlopen(URL))
-        irc.reply(d[type][power])
+        irc.reply(d['discipline']['Animalism']['1'], prefixNick=False)
 
     rules = wrap(rules, [optional('text'), optional('text')])
 
