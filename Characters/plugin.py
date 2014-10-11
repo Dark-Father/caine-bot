@@ -1032,9 +1032,8 @@ class Characters(callbacks.Plugin):
     getdmg = wrap(getdmg)
 
     def dmgcheck(self, irc, msg, args, name):
-        """takes <name> argument
-
-        check a players curent damage
+        """takes <name> argument -
+        check a players current damage
         """
 
         nicks = msg.nick
@@ -1088,7 +1087,7 @@ class Characters(callbacks.Plugin):
     dmgcheck = wrap(dmgcheck, ['anything'])
 
     def givedmg(self, irc, msg, args, name, amount, dmgtype):
-        """<name><amount><type>
+        """<name> <amount> <type>
 
         Give players damage. Use agg or norm for type.
         """
@@ -1138,6 +1137,43 @@ class Characters(callbacks.Plugin):
                     conn.commit()
                     created = "%s %s given to %s." % (amount, dmgtype, name)
                     irc.reply(created)
+
+                ## give new values...
+                c.execute("SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = ?", (name,))
+                dmg = c.fetchone()
+                agg = dmg[0]
+                norm = dmg[1]
+                created = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
+                if agg + norm == 0:
+                    created += " * UNDAMAGED"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 1:
+                    created += " * BRUISED (0 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 2:
+                    created += " * HURT (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 3:
+                    created += " * INJURED (-1 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 4:
+                    created += " * WOUNDED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 5:
+                    created += " * MAULED (-2 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 6:
+                    created += " * CRIPPLED (-5 Dice Penalty)"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg + norm == 7:
+                    created += " * INCAPACITATED"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif norm == 8:
+                    created += " * TORPORED"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
+                elif agg == 8:
+                    created += " * FINAL DEATH"
+                    irc.queueMsg(ircmsgs.privmsg(name, created))
 
                 else:
                     raise NameError("Error: You must use !givedmg <value> <agg|norm>")
