@@ -45,6 +45,7 @@ class Extras(callbacks.Plugin):
         self.__parent = super(Extras, self)
         self.__parent.__init__(irc)
         self.snack = {}
+        self.megan = 0
 
     def stfree(self, irc, msg, args):
         """takes no arguments
@@ -93,24 +94,29 @@ class Extras(callbacks.Plugin):
             irc.error("Command only available in #ooc.", Raise=True)
     treat = wrap(treat)
 
-    def sacrifice(self, irc, msg, args):
+    def sacrifice(self, irc, msg, args, megan):
         currentChannel = msg.args[0]
         only_channel = "#ooc"
 
         try:
             if currentChannel == only_channel:
                 die = random.randint(1, 100)
-                if die < 90:
-                    irc.reply("%s sacrifices themselves to %s."
-                              % (msg.nick, irc.nick), prefixNick=False)
-                else:
-                    irc.reply("%s rejects your pathetic attempts to appease him, %s."
-                              % (irc.nick, msg.nick), prefixNick=False)
+                if megan == "Megan":
+                    self.megan += 1
+                    irc.reply("Megan has been sacrificed to appeased Caine. Megan has been sacrificed %s times."
+                              % self.megan, prefixNick=False)
+                elif not megan:
+                    if die < 90:
+                        irc.reply("%s sacrifices themselves to %s."
+                                  % (msg.nick, irc.nick), prefixNick=False)
+                    else:
+                        irc.reply("%s rejects your pathetic attempts to appease him, %s."
+                                  % (irc.nick, msg.nick), prefixNick=False)
             else:
                 irc.error("Command only available in #ooc.", Raise=True)
         except KeyError:
             pass
-    sacrifice = wrap(sacrifice)
+    sacrifice = wrap(sacrifice, [optional('text')])
 Class = Extras
 
 
