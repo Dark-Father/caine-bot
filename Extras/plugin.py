@@ -101,7 +101,15 @@ class Extras(callbacks.Plugin):
         try:
             if currentChannel == only_channel:
                 die = random.randint(1, 100)
-                if megan == "Megan":
+                if msg.nick == "Isabel" or msg.nick == "Megan":
+                    self.megan += 1
+                    silly_megan = "Megan slips and falls into the sacrifice instead, " \
+                                  "sacrificing herself to herself. Standard Megan move. " \
+                                  "Megan has been sacrificed %s times." % self.megan
+                    irc.reply(silly_megan, prefixNick=False)
+                elif megan != "Megan":
+                    irc.reply("Caine prefers Megan only.", prefixNick=False)
+                elif megan == "Megan":
                     self.megan += 1
                     irc.reply("Megan has been sacrificed to appeased Caine. Megan has been sacrificed %s times."
                               % self.megan, prefixNick=False)
