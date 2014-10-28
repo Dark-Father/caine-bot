@@ -5,7 +5,7 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#   * Redistributions of source code must retain the above copyright notice,
+# * Redistributions of source code must retain the above copyright notice,
 #     this list of conditions, and the following disclaimer.
 #   * Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions, and the following disclaimer in the
@@ -80,6 +80,7 @@ class Characters(callbacks.Plugin):
         finally:
             #lastly we close the database connection.
             conn.close()
+
     startdb = wrap(startdb)
 
     def createchar(self, irc, msg, args, name, bp, wp):
@@ -105,7 +106,7 @@ class Characters(callbacks.Plugin):
                       "Fed_Already, Aggravated_Dmg, Normal_Dmg, NPC, Lastname, Stats) VALUES(?,?,?,?,?,?,?,"
                       "?,?,?,?,?,?,?,?,?)",
                       (name, bp, bp, wp, wp, 0, 0,
-                      'No Description Set', 'No Link Set', 0, 0, 0, 0, 0, None, 'No Stats Set'))
+                       'No Description Set', 'No Link Set', 0, 0, 0, 0, 0, None, 'No Stats Set'))
             created = "Added %s with %s bp and %s wp" % (name, bp, wp)
             irc.reply(created)
             conn.commit()
@@ -183,6 +184,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     setdesc = wrap(setdesc, ['text'])
 
     def setlink(self, irc, msg, args, url):
@@ -297,7 +299,7 @@ class Characters(callbacks.Plugin):
 
             if checkname:
                 c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
-                          name,))
+                    name,))
                 desc = c.fetchone()
                 if desc[3] is not None:
                     created = desc[0] + " " + desc[3] + " " + desc[1]
@@ -322,6 +324,7 @@ class Characters(callbacks.Plugin):
             irc.reply(created)
         finally:
             conn.close()
+
     describe = wrap(describe, ['anything'])
 
     def getbp(self, irc, msg, args):
@@ -464,6 +467,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     getcharbp = wrap(getcharbp, ['anything'])
 
     def feed(self, irc, msg, args, num, difficulty):
@@ -558,6 +562,7 @@ class Characters(callbacks.Plugin):
                         conn.commit()
         finally:
             conn.close()
+
     feed = wrap(feed, ['int', 'int'])
 
     def getwp(self, irc, msg, args):
@@ -592,6 +597,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     getwp = wrap(getwp)
 
     def wp(self, irc, msg, args, wpnum, reason):
@@ -694,6 +700,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     getcharwp = wrap(getcharwp, ['anything'])
 
     def getxp(self, irc, msg, args):
@@ -736,6 +743,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     getxp = wrap(getxp)
 
     def getcharxp(self, irc, msg, args, name):
@@ -761,6 +769,7 @@ class Characters(callbacks.Plugin):
 
         finally:
             conn.close()
+
     getcharxp = wrap(getcharxp, ['anything'])
 
     def givexp(self, irc, msg, args, name, num):
@@ -783,13 +792,14 @@ class Characters(callbacks.Plugin):
                 xpmax = xpmax + num
                 xpcur = xpcur + num
                 c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ? COLLATE NOCASE", (
-                          xpcur, xpmax, name))
+                    xpcur, xpmax, name))
                 conn.commit()
                 created = "%s XP given to %s. (%s/%s)" % (num, name, xpcur, xpmax)
                 irc.reply(created, private=True)
 
         finally:
             conn.close()
+
     givexp = wrap(givexp, ['anything', 'int'])
 
     def spendxp(self, irc, msg, args, name, num, reason):
@@ -1214,7 +1224,7 @@ class Characters(callbacks.Plugin):
                             raise ArithmeticError("You don't have that much damage to heal.")
 
                         c.execute("UPDATE Chars SET Aggravated_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
-                                  nicks))
+                                                                                                     nicks))
                         conn.commit()
                         created = "%s %s damage healed for %s BP." % (amount, dmgtype, amountbp)
                         irc.reply(created)
@@ -1231,7 +1241,7 @@ class Characters(callbacks.Plugin):
                             raise ArithmeticError("You don't have that much damage to heal.")
 
                         c.execute("UPDATE Chars SET Normal_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
-                                  nicks))
+                                                                                                 nicks))
                         conn.commit()
                         created = "%s %s damage healed for %s BP" % (amount, dmgtype, amount)
                         irc.reply(created)
@@ -1261,25 +1271,25 @@ class Characters(callbacks.Plugin):
             checkname = c.fetchone()
 
             if checkname:
-                    c.execute("UPDATE Chars SET NPC = ? WHERE Name = ? COLLATE NOCASE", (numset, name))
-                    conn.commit()
-                    created = "NPC set to %s" % numset
-                    irc.reply(created)
+                c.execute("UPDATE Chars SET NPC = ? WHERE Name = ? COLLATE NOCASE", (numset, name))
+                conn.commit()
+                created = "NPC set to %s" % numset
+                irc.reply(created)
 
         finally:
             conn.close()
 
     npc = wrap(npc, ['anything', 'int'])
 
-#    def insert(self, irc, msgs, args):
-#
-#     conn = sqlite3.connect('characters.db')
-#      c = conn.cursor()
-#      c.execute("ALTER TABLE Chars ADD COLUMN Stats TEXT")
-#        conn.commit()
-#        conn.close()
-#
-#    insert = wrap(insert)
+    #    def insert(self, irc, msgs, args):
+    #
+    #     conn = sqlite3.connect('characters.db')
+    #      c = conn.cursor()
+    #      c.execute("ALTER TABLE Chars ADD COLUMN Stats TEXT")
+    #        conn.commit()
+    #        conn.close()
+    #
+    #    insert = wrap(insert)
 
     def nightly(self, irc, msg, args):
         """takes no arguments
@@ -1331,6 +1341,7 @@ class Characters(callbacks.Plugin):
                 conn.commit()
         finally:
             conn.close()
+
     weekly = wrap(weekly)
 
     def charlog(self, irc, msg, args, name):
@@ -1344,45 +1355,49 @@ class Characters(callbacks.Plugin):
             c = conn.cursor()
             conn.text_factory = str
             c.execute("SELECT Date, ST, Amount, Reason FROM XPlog WHERE Name = ? COLLATE NOCASE", (name,))
-            checkname = c.fetchone()
             logdata = c.fetchall()
 
-            if checkname is not None:
+            if logdata:
                 reply = ('Date', 'ST Name', 'XP Spent', 'Reason')
                 irc.reply(reply)
+
                 for row in logdata:
                     irc.reply(row)
+
+            elif not logdata:
+                irc.reply("Character not Found")
 
         finally:
             conn.close()
 
+
     charlog = wrap(charlog, ['anything'])
 
 
-    # def ctest(self, irc, msg, args):
-    #     """Let's see if this works"""
-    #     irc.reply("ctest reporting in")
-    #     conn = sqlite3.connect('characters.db')
-    #     c = conn.cursor()
-    #     c.execute("SELECT * FROM Chars")
-    #     rows = c.fetchall()
-    #
-    #     for row in rows:
-    #         irc.reply(row)
-    #
-    # ctest = wrap(ctest)
-    #
-    # def logtest(self, irc, msg, args):
-    #     conn = sqlite3.connect('characters.db')
-    #     c = conn.cursor()
-    #     c.execute("SELECT * FROM XPlog")
-    #
-    #     rows = c.fetchall()
-    #
-    #     for row in rows:
-    #         irc.reply(row)
-    #
-    # logtest = wrap(logtest)
+# def ctest(self, irc, msg, args):
+#     """Let's see if this works"""
+#     irc.reply("ctest reporting in")
+#     conn = sqlite3.connect('characters.db')
+#     c = conn.cursor()
+#     c.execute("SELECT * FROM Chars")
+#     rows = c.fetchall()
+#
+#     for row in rows:
+#         irc.reply(row)
+#
+# ctest = wrap(ctest)
+#
+# def logtest(self, irc, msg, args):
+#     conn = sqlite3.connect('characters.db')
+#     c = conn.cursor()
+#     c.execute("SELECT * FROM XPlog")
+#
+#     rows = c.fetchall()
+#
+#     for row in rows:
+#         irc.reply(row)
+#
+# logtest = wrap(logtest)
 
 Class = Characters
 
