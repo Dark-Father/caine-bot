@@ -106,19 +106,19 @@ class Characters(callbacks.Plugin):
             # irc.reply(data)
             if data < 1:
                 arg = '''CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)'''
-                create = self.dbmgr.query(arg, name=None)
+                create = self.dbmgr.query(arg)
                 if create is True:
                     irc.reply('Request Log Database Created.')
                 arg = '''CREATE TABLE XPlog(Id INTEGER PRIMARY KEY, Name TEXT,
                           Date TEXT, ST TEXT, Amount INT, Reason TEXT)'''
-                create = self.dbmgr.query(arg, name=None)
+                create = self.dbmgr.query(arg)
                 if create is True:
                     irc.reply('XP Log Database Created.')
                 arg = '''CREATE TABLE Chars(Id INTEGER PRIMARY KEY, Name TEXT unique, BP_Cur INT, BP_Max INT,
                             WP_Cur INT, WP_Max INT, XP_Cur INT, XP_Total INT, Description TEXT,
                             Link TEXT, Requested_XP INT, Fed_Already INT,
                             Aggravated_Dmg INT, Normal_Dmg INT, NPC INT, Lastname TEXT, Stats TEXT)'''
-                create = self.dbmgr.query(arg, name=None)
+                create = self.dbmgr.query(arg)
                 if create is True:
                     irc.reply('Character Database Created.')
             else:
