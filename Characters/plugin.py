@@ -1,5 +1,5 @@
 # ##
-# Copyright (c) 2014, Liam Burke
+# Copyright (c) 2014, Liam Burke, David Rickman
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -62,9 +62,19 @@ class DatabaseManager(object):
         checkname = self.c.fetchone()
         return checkname
 
-    def readone(self, arg, name):
-        read = self.c.execute(arg.format(name))
+    def reqname(self, name):
+        self.c.execute("SELECT Amount FROM Request WHERE Name = ?", (name,))
+        reqname = self.c.fetchone()
+        return reqname
+
+    def readone(self, arg):
+        read = self.c.execute(arg)
         read = read.fetchone()
+        return read
+
+    def fetchall(self, arg):
+        read = self.c.execute(arg)
+        read = read.fetchall()
         return read
 
     def rollback(self):
@@ -140,7 +150,7 @@ class Characters(callbacks.Plugin):
                         VALUES("{0}", "{1}", "{1}", "{2}", "{2}", 0, 0, 'No Description', 'No Link',
                         0, 0, 0, 0, 0, '', 'No Stats Set')'''.format(name, bp, wp)
             # fields = ()
-            self.dbmgr.query(arg, name=None)
+            self.dbmgr.query(arg)
             created = "Added %s with %s bp and %s wp" % (name, bp, wp)
             irc.reply(created)
 
@@ -278,17 +288,14 @@ class Characters(callbacks.Plugin):
         Gets the description of the named character
         """
 
-        name = str.capitalize(name)
+        nicks = str.capitalize(name)
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT Name, Description, Link, Lastname, Stats FROM Chars WHERE Name = ? COLLATE NOCASE", (
-                    name,))
-                desc = c.fetchone()
+                arg = '''SELECT Name, Description, Link, Lastname, Stats
+                          FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                desc = self.dbmgr.readone(arg)
                 if desc[3] is not None:
                     created = desc[0] + " " + desc[3] + " " + desc[1]
                 else:
@@ -306,12 +313,9 @@ class Characters(callbacks.Plugin):
                 raise NameError(name)
 
         except NameError as e:
-            conn.rollback()
-            created = "Error: Character \"%s\" not found." % e
-            created = ircutils.mircColor(created, 4)
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not found." % e, 4)
             irc.reply(created)
-        finally:
-            conn.close()
 
     describe = wrap(describe, ['anything'])
 
@@ -326,14 +330,11 @@ class Characters(callbacks.Plugin):
         nicks = nicks.split(sep, 1)[0]
 
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
-                bp = c.fetchone()
+                arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                bp = self.dbmgr.readone(arg)
                 bpcur = str(bp[0])
                 bpmax = str(bp[1])
                 created = "Available Blood (" + bpcur + "/" + bpmax + ")"
@@ -343,14 +344,9 @@ class Characters(callbacks.Plugin):
                 raise NameError(nicks)
 
         except NameError as e:
-            conn.rollback()
-            nicks = msg.nick
-            created = "Error: Character \"%s\" not in database." % e
-            created = ircutils.mircColor(created, 4)
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
             irc.reply(created)
-
-        finally:
-            conn.close()
 
     getbp = wrap(getbp)
 
@@ -364,42 +360,40 @@ class Characters(callbacks.Plugin):
         sep = '_'
         nicks = nicks.split(sep, 1)[0]
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
-                bp = c.fetchone()
+                arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                bp = self.dbmgr.readone(arg)
                 if bpnum is None and bp[0] != 0:
                     bpcur = int(bp[0]) - 1
-                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
-                    conn.commit()
-                    bpcur = str(bpcur)
-                    bpmax = str(bp[1])
+                    arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, nicks)
+                    self.dbmgr.query(arg)
+                    bpcur, bpmax = str(bpcur), str(bp[1])
                     created = "Available Blood (" + bpcur + "/" + bpmax + ")"
-                    chanreply = "Spent 1 BP"
-                    irc.reply(chanreply)
+                    response = "Spent 1 BP"
+                    irc.reply(response)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 elif bpnum <= bp[1] and bpnum <= bp[0] and bpnum is not None:
                     bpcur = int(bp[0]) - bpnum
-                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
-                    conn.commit()
-                    bpcur = str(bpcur)
-                    bpmax = str(bp[1])
+                    arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, nicks)
+                    self.dbmgr.query(arg)
+                    bpcur, bpmax = str(bpcur), str(bp[1])
                     created = "Available Blood (" + bpcur + "/" + bpmax + ")"
-                    chanreply = "Spent %s BP" % bpnum
-                    irc.reply(chanreply)
+                    response = "Spent %s BP" % bpnum
+                    irc.reply(response)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 else:
                     irc.reply("You don't enough blood")
 
             else:
-                irc.reply("No such Character")
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     bp = wrap(bp, [optional('int'), optional('text')])
 
@@ -410,22 +404,21 @@ class Characters(callbacks.Plugin):
         """
         nicks = msg.nick
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newbp, name))
-                conn.commit()
+                arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}" COLLATE NOCASE '''.format(newbp, name)
+                self.dbmgr.query(arg)
                 created = "New BP set to %s for %s" % (newbp, name)
                 irc.reply(created, private=True)
-
             else:
-                irc.reply("Error: Name not found.")
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     setbp = wrap(setbp, ['anything', 'int'])
 
@@ -435,22 +428,23 @@ class Characters(callbacks.Plugin):
         Get the Characters bloodpool
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                bp = c.fetchone()
-                bpcur = str(bp[0])
-                bpmax = str(bp[1])
+                arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                bp = self.dbmgr.readone(arg)
+                bpcur, bpmax = str(bp[0]), str(bp[1])
                 created = "Available Blood for %s (" % name
                 created = str(created) + bpcur + "/" + bpmax + ")"
                 irc.reply(created, private=True)
+            else:
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     getcharbp = wrap(getcharbp, ['anything'])
 
@@ -467,9 +461,6 @@ class Characters(callbacks.Plugin):
         fancy_outcome = []
 
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
@@ -494,57 +485,61 @@ class Characters(callbacks.Plugin):
                     dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
                                                                       str(difficulty))
                     irc.reply(dicepool, private=True)
-                    c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Fed_Already = 1 WHERE Name = "{0}"'''.format(nicks)
+                    self.dbmgr.query(arg)
                 elif 0 <= success <= ones:
                     total = "Failure"
                     dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
                                                                       str(difficulty))
                     irc.reply(dicepool, private=True)
-                    c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Fed_Already = 1 WHERE Name = "{0}"'''.format(nicks)
+                    self.dbmgr.query(arg)
 
                 elif total == 1:
                     total = "Gained 3 bp"
                     dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
                                                                       str(difficulty))
                     irc.reply(dicepool, private=True)
-                    c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
-                    conn.commit()
-                    c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
-                    bp = c.fetchone()
-                    bpcur = int(bp[0])
-                    bpmax = int(bp[1])
+                    arg = '''UPDATE Chars SET Fed_Already = 1 WHERE Name = "{0}"'''.format(nicks)
+                    self.dbmgr.query(arg)
+                    arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                    bp = self.dbmgr.readone(arg)
+                    bpcur, bpmax = int(bp[0]),  int(bp[1])
                     bptest = bpmax - bpcur
                     if bptest <= 3:
-                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpmax, nicks))
-                        conn.commit()
+                        arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpmax, nicks)
+                        self.dbmgr.query(arg)
                     else:
                         bpcur += 3
-                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
-                        conn.commit()
+                        arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, nicks)
+                        self.dbmgr.query(arg)
 
                 elif total > 1:
                     total = "Gained 6 bp"
                     dicepool = 'You fed: %s (%s) %s dice @diff %s' % (" ".join(fancy_outcome), total, str(num),
                                                                       str(difficulty))
                     irc.reply(dicepool, private=True)
-                    c.execute("UPDATE Chars SET Fed_Already = 1 WHERE Name = ?", (nicks,))
-                    conn.commit()
-                    c.execute("SELECT BP_Cur, BP_Max FROM Chars WHERE Name = ?", (nicks,))
-                    bp = c.fetchone()
-                    bpcur = int(bp[0])
-                    bpmax = int(bp[1])
+                    arg = '''UPDATE Chars SET Fed_Already = 1 WHERE Name = "{0}"'''.format(nicks)
+                    self.dbmgr.query(arg)
+                    arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                    bp = self.dbmgr.readone(arg)
+                    bpcur, bpmax = int(bp[0]), int(bp[1])
                     bptest = bpmax - bpcur
                     if bptest <= 6:
-                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpmax, nicks))
-                        conn.commit()
+                        arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpmax, nicks)
+                        self.dbmgr.query(arg)
                     else:
                         bpcur += 6
-                        c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, nicks))
-                        conn.commit()
-        finally:
-            conn.close()
+                        arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, nicks)
+                        self.dbmgr.query(arg)
+            else:
+                nicks = msg.nick
+                raise NameError(nicks)
+
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     feed = wrap(feed, ['int', 'int'])
 
@@ -558,27 +553,22 @@ class Characters(callbacks.Plugin):
         nicks = nicks.split(sep, 1)[0]
 
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
-                wp = c.fetchone()
-                wpcur = str(wp[0])
-                wpmax = str(wp[1])
+                arg = '''SELECT WP_Cur, WP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                wp = self.dbmgr.readone(arg)
+                wpcur, wpmax = str(wp[0]), str(wp[1])
                 created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
                 irc.queueMsg(ircmsgs.notice(nicks, created))
             else:
-                irc.reply("Error: Name not found.")
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        except sqlite3.Error:
-            conn.rollback()
-            irc.reply("Error: No such Character")
-
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     getwp = wrap(getwp)
 
@@ -592,42 +582,39 @@ class Characters(callbacks.Plugin):
         sep = '_'
         nicks = nicks.split(sep, 1)[0]
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ?", (nicks,))
-                wp = c.fetchone()
+                arg = '''SELECT WP_Cur, WP_Max FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                wp = self.dbmgr.readone(arg)
                 if wpnum is None and wp[0] != 0:
                     wpcur = int(wp[0]) - 1
-                    c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, nicks))
-                    conn.commit()
-                    wpcur = str(wpcur)
-                    wpmax = str(wp[1])
+                    arg = '''UPDATE Chars SET WP_Cur = "{0}" WHERE Name = "{1}"'''.format(wpcur, nicks)
+                    self.dbmgr.query(arg)
+                    wpcur, wpmax = str(wpcur), str(wp[1])
                     created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
-                    chanreply = "spent 1 WP"
+                    chanreply = "Spent 1 WP"
                     irc.reply(chanreply)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 elif wpnum <= wp[1] and wpnum <= wp[0] and wpnum is not None:
                     wpcur = int(wp[0]) - wpnum
-                    c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, nicks))
-                    conn.commit()
-                    wpcur = str(wpcur)
-                    wpmax = str(wp[1])
+                    arg = '''UPDATE Chars SET WP_Cur = "{0}" WHERE Name = "{1}"'''.format(wpcur, nicks)
+                    self.dbmgr.query(arg)
+                    wpcur, wpmax = str(wpcur), str(wp[1])
                     created = "Available Willpower (" + wpcur + "/" + wpmax + ")"
-                    chanreply = "spent %s WP" % wpnum
+                    chanreply = "Spent %s WP" % wpnum
                     irc.reply(chanreply)
                     irc.queueMsg(ircmsgs.notice(nicks, created))
                 else:
                     irc.reply("You don't have enough willpower")
-
             else:
-                irc.reply("No such Character")
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     wp = wrap(wp, [optional('int'), optional('text')])
 
@@ -638,23 +625,21 @@ class Characters(callbacks.Plugin):
         """
         nicks = msg.nick
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-            checkname = c.fetchone()
+            checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ? COLLATE NOCASE", (newwp, name))
-                conn.commit()
+                arg = '''UPDATE Chars SET WP_Cur = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(newwp, name)
+                self.dbmgr.query(arg)
                 created = "New WP set to %s for %s" % (newwp, name)
                 irc.reply(created, private=True)
-
             else:
-                irc.reply("Error: Name not found.")
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     setwp = wrap(setwp, ['anything', 'int'])
 
@@ -664,22 +649,23 @@ class Characters(callbacks.Plugin):
         Get the Characters willpower
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT WP_Cur, WP_Max FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                wp = c.fetchone()
-                wpcur = str(wp[0])
-                wpmax = str(wp[1])
+                arg = '''SELECT WP_Cur, WP_Max FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                wp = self.dbmgr.readone(arg)
+                wpcur, wpmax = str(wp[0]), str(wp[1])
                 created = "Available Willpower for %s (" % name
                 created = str(created) + wpcur + "/" + wpmax + ")"
                 irc.reply(created, private=True)
+            else:
+                nicks = msg.nick
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     getcharwp = wrap(getcharwp, ['anything'])
 
@@ -693,35 +679,28 @@ class Characters(callbacks.Plugin):
         nicks = nicks.split(sep, 1)[0]
 
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
-            c.execute("SELECT Amount FROM Request WHERE Name = ?", (nicks,))
-            reqname = c.fetchone()
+            reqname = self.dbmgr.reqname(nicks)
 
             if checkname:
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (nicks,))
-                xp = c.fetchone()
-                xpcur = str(xp[0])
-                xpmax = str(xp[1])
+                arg = '''SELECT XP_Cur, XP_Total FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                xp = self.dbmgr.readone(arg)
+                xpcur, xpmax = str(xp[0]), str(xp[1])
                 if reqname:
                     request = str(reqname[0])
                     created = "Available Experience (" + xpcur + "/" + xpmax + ")" + \
-                              "- Requested " + request + "XP for the week."
+                              " - Requested " + request + "XP for the week."
                 else:
                     created = "Available Experience (" + xpcur + "/" + xpmax + ")"
 
                 irc.queueMsg(ircmsgs.notice(nicks, created))
             else:
-                irc.reply("Error: Name not found.")
+                raise NameError(nicks)
 
-        except sqlite3.Error:
-            conn.rollback()
-            irc.reply("Error: No such Character")
-
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     getxp = wrap(getxp)
 
@@ -731,22 +710,22 @@ class Characters(callbacks.Plugin):
         Get the Characters willpower
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                xp = c.fetchone()
-                xpcur = str(xp[0])
-                xpmax = str(xp[1])
+                arg = '''SELECT XP_Cur, XP_Total FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                xp = self.dbmgr.readone(arg)
+                xpcur, xpmax = str(xp[0]), str(xp[1])
                 created = "Available Experience for %s (" % name
                 created = str(created) + xpcur + "/" + xpmax + ")"
                 irc.reply(created, private=True)
+            else:
+                raise NameError(name)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     getcharxp = wrap(getcharxp, ['anything'])
 
@@ -756,26 +735,25 @@ class Characters(callbacks.Plugin):
         Manually give a Character XP
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                xp = c.fetchone()
-                xpcur = int(xp[0])
-                xpmax = int(xp[1])
-                xpmax = xpmax + num
-                xpcur = xpcur + num
-                c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ? COLLATE NOCASE", (
-                    xpcur, xpmax, name))
-                conn.commit()
+                arg = '''SELECT XP_Cur, XP_Total FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                xp = self.dbmgr.readone(arg)
+                xpcur, xpmax = int(xp[0]), int(xp[1])
+                xpmax, xpcur = xpmax + num, xpcur + num
+                arg = '''UPDATE Chars SET XP_Cur = "{0}", XP_Total = "{1}" WHERE Name = "{2}" COLLATE NOCASE'''.format(
+                    xpcur, xpmax, name)
+                self.dbmgr.query(arg)
                 created = "%s XP given to %s. (%s/%s)" % (num, name, xpcur, xpmax)
                 irc.reply(created, private=True)
+            else:
+                raise NameError(name)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     givexp = wrap(givexp, ['anything', 'int'])
 
@@ -787,28 +765,30 @@ class Characters(callbacks.Plugin):
 
         nicks = msg.nick
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
-                c.execute("SELECT XP_Cur FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                xp = c.fetchone()
+                arg = '''SELECT XP_Cur FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                xp = self.dbmgr.readone(arg)
                 xpcur = int(xp[0])
                 xpcur = xpcur - num
                 if xpcur < 0:
                     irc.reply("Not enough XP to spend!", private=True)
                 else:
-                    c.execute("UPDATE Chars SET XP_Cur = ? WHERE Name = ? COLLATE NOCASE", (xpcur, name))
-                    c.execute("INSERT INTO XPlog(Name, Date, ST, Amount, Reason) VALUES(?, date('now'), ?, ?, ?)",
-                              (name, nicks, num, reason))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET XP_Cur = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(xpcur, name)
+                    self.dbmgr.query(arg)
+                    arg = '''INSERT INTO XPlog(Name, Date, ST, Amount, Reason)
+                              VALUES("{0}", date('now'), "{1}", "{2}", "{3}")'''.format(name, nicks, num, reason)
+                    self.dbmgr.query(arg)
                     created = "%s XP spent from %s." % (num, name)
                     irc.reply(created, private=True)
+            else:
+                raise NameError(name)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     spendxp = wrap(spendxp, ['anything', 'int', 'text'])
 
@@ -820,35 +800,32 @@ class Characters(callbacks.Plugin):
 
         nicks = msg.nick
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
-            c.execute("SELECT Name FROM Request WHERE Name = ?", (nicks,))
-            reqname = c.fetchone()
+            reqname = self.dbmgr.reqname(nicks)
 
             if amount > 3:
                 created = "You have requested %s dicks in your eye, you god damn smartass. " \
                           "Pick something below 3." % amount
-
                 irc.queueMsg(ircmsgs.notice(nicks, created))
 
             elif checkname and not reqname:
-                c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (nicks, amount))
-                conn.commit()
+                arg = '''INSERT INTO Request(Name, Amount) VALUES("{0}", "{1}")'''.format(nicks, amount)
+                self.dbmgr.query(arg)
                 created = "You have requested %s XP" % amount
                 irc.queueMsg(ircmsgs.notice(nicks, created))
 
             elif checkname and reqname:
-                c.execute("UPDATE Request SET Amount = ? WHERE Name = ?", (amount, nicks))
-                conn.commit()
+                arg = '''UPDATE Request SET Amount = "{0}" WHERE Name = "{1}"'''.format(amount, nicks)
+                self.dbmgr.query(arg)
                 created = "You have requested %s XP" % amount
                 irc.queueMsg(ircmsgs.notice(nicks, created))
             else:
-                irc.reply("Error: Character name not found")
+                raise NameError(nicks)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            irc.reply(created)
 
     requestxp = wrap(requestxp, ['int'])
 
@@ -858,22 +835,20 @@ class Characters(callbacks.Plugin):
         Show the Request XP list for this week
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            c = conn.cursor()
-            c.execute("SELECT * FROM Request")
-            rows = c.fetchall()
+            arg = '''SELECT * FROM Request'''
+            rows = self.dbmgr.fetchall(arg)
 
             for row in rows:
                 created = "%s requested %s XP" % (row[1], row[2])
-                irc.reply(created)
+                irc.reply(created, prefixNick=False)
 
         finally:
-            conn.close()
+            pass
 
     requestlist = wrap(requestlist)
 
     def modifylist(self, irc, msg, args, command, name, amount):
-        """<command> <name> optional(amount)
+        """<command> <name> <optional(amount)>
 
         Modify the requestxp list.
         Remove command removes a name from the list.
@@ -882,50 +857,43 @@ class Characters(callbacks.Plugin):
         """
 
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            checkname = self.dbmgr.checkname(nicks)
-            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-            secname = c.fetchone()
+            checkname = self.dbmgr.checkname(name)
+            reqname = self.dbmgr.readone(name)
 
             if command == 'remove':
-                if checkname:
-                    c.execute("DELETE FROM Request WHERE Name =? COLLATE NOCASE", (name,))
-                    conn.commit()
+                if checkname and reqname:
+                    arg = '''DELETE FROM Request WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                    self.dbmgr.query(arg)
                     created = "%s removed from requestxp list." % name
                     irc.reply(created, private=True)
-
                 else:
-                    irc.reply("Error: Name not found")
+                    raise NameError(name)
 
             elif command == 'add':
-                if checkname is None and secname:
-                    c.execute("INSERT INTO Request(Name, Amount) VALUES(?, ?)", (name, amount))
-                    conn.commit()
+                if checkname and not reqname:
+                    arg = '''INSERT INTO Request(Name, Amount) VALUES("{0}", "{1}")'''.format(name, amount)
+                    self.dbmgr.query(arg)
                     created = "%s added with %s XP requested." % (name, amount)
                     irc.reply(created, private=True)
-
-                elif secname is None:
-                    irc.reply("Error: Character does not exist")
-
                 else:
                     irc.reply("Error: Name already exists in list. Use change instead.")
 
             elif command == 'change':
-                if checkname:
-                    c.execute("UPDATE Request SET Amount = ? WHERE Name = ? COLLATE NOCASE", (amount, name))
-                    conn.commit()
+                if checkname and reqname:
+                    arg = '''UPDATE Request SET Amount = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(amount, name)
+                    self.dbmgr.query(arg)
                     created = "%s changed to %s XP requested." % (name, amount)
                     irc.reply(created, private=True)
 
                 else:
-                    irc.reply("Error: Name not found")
+                    raise NameError(name)
             else:
                 irc.reply("Error: Please use commands: remove, add or change")
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            created = ircutils.mircColor("Error: Character \"%s\" not found in table." % e, 4)
+            irc.reply(created)
 
     modifylist = wrap(modifylist, ['anything', 'anything', optional('int')])
 
@@ -935,28 +903,26 @@ class Characters(callbacks.Plugin):
         Approves the XP list for this week.
         """
         try:
-            conn = sqlite3.connect('characters.db', timeout=10)
-            conn.text_factory = str
-            c = conn.cursor()
-            c.execute("SELECT * FROM Request")
-            rows = c.fetchall()
+
+            arg = '''SELECT * FROM Request'''
+            rows = self.dbmgr.fetchall(arg)
 
             for row in rows:
                 name = row[1]
-                c.execute("SELECT XP_Cur, XP_Total FROM Chars WHERE Name = ?", (name,))
-                xp = c.fetchone()
-                xpcur = xp[0] + row[2]
-                xpmax = xp[1] + row[2]
-                c.execute("UPDATE Chars SET XP_Cur = ?, XP_Total = ? WHERE Name = ?", (xpcur, xpmax, name))
-                conn.commit()
+                arg = '''SELECT XP_Cur, XP_Total FROM Chars WHERE Name = "{0}"'''.format(name)
+                xp = self.dbmgr.readone(arg)
+                xpcur, xpmax = xp[0] + row[2], xp[1] + row[2]
+                arg = '''UPDATE Chars SET XP_Cur = "{0}", XP_Total = "{1}" WHERE Name = "{2}"'''.format\
+                    (xpcur, xpmax, name)
+                self.dbmgr.query(arg)
                 created = "Gave %s %s XP" % (name, row[2])
                 irc.reply(created, private=True)
 
         finally:
-            c.execute("DROP TABLE Request")
-            c.execute("CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)")
-            conn.commit()
-            conn.close()
+            arg = '''DROP TABLE Request'''
+            self.dbmgr.query(arg)
+            arg = '''CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)'''
+            self.dbmgr.query(arg)
 
     approvelist = wrap(approvelist)
 
@@ -967,36 +933,37 @@ class Characters(callbacks.Plugin):
             if check_name:
                 arg = '''SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = "{0}"'''.format(name)
                 dmg = self.dbmgr.readone(arg)
-                agg = dmg[0]
-                norm = dmg[1]
-                created = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
+                agg, norm = dmg[0], dmg[1]
+                response = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
                 if agg + norm == 0:
-                    created += " * UNDAMAGED"
+                    response += " * UNDAMAGED"
                 elif agg + norm == 1:
-                    created += " * BRUISED (0 Dice Penalty)"
+                    response += " * BRUISED (0 Dice Penalty)"
                 elif agg + norm == 2:
-                    created += " * HURT (-1 Dice Penalty)"
+                    response += " * HURT (-1 Dice Penalty)"
                 elif agg + norm == 3:
-                    created += " * INJURED (-1 Dice Penalty)"
+                    response += " * INJURED (-1 Dice Penalty)"
                 elif agg + norm == 4:
-                    created += " * WOUNDED (-2 Dice Penalty)"
+                    response += " * WOUNDED (-2 Dice Penalty)"
                 elif agg + norm == 5:
-                    created += " * MAULED (-2 Dice Penalty)"
+                    response += " * MAULED (-2 Dice Penalty)"
                 elif agg + norm == 6:
-                    created += " * CRIPPLED (-5 Dice Penalty)"
+                    response += " * CRIPPLED (-5 Dice Penalty)"
                 elif agg + norm == 7:
-                    created += " * INCAPACITATED"
+                    response += " * INCAPACITATED"
                 elif norm == 8:
-                    created += " * TORPORED"
+                    response += " * TORPORED"
                 elif agg == 8:
-                    created += " * FINAL DEATH"
+                    response += " * FINAL DEATH"
+
+                return response
             else:
-                created = "No character found"
+                raise NameError(nicks)
 
-            return created
-
-        finally:
-            pass
+        except NameError as e:
+            self.dbmgr.rollback()
+            response = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            return response
 
     def getdmg(self, irc, msg, args):
         """takes no arguments
@@ -1022,7 +989,6 @@ class Characters(callbacks.Plugin):
         except NameError:
             pass
 
-
     dmgcheck = wrap(dmgcheck, ['anything'])
 
     def givedmg(self, irc, msg, args, name, amount, dmgtype):
@@ -1031,54 +997,53 @@ class Characters(callbacks.Plugin):
         Give players damage. Use agg or norm for type.
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(name)
 
             if checkname:
-                c.execute("SELECT Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-                dmg = c.fetchone()
+                arg = '''SELECT Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                dmg = self.dbmgr.readone(arg)
                 combinedmg = dmg[0] + dmg[1] + amount
 
                 if dmgtype.lower() == "agg" and combinedmg > 7:
-                    newamount = amount + dmg[0]
-                    c.execute("UPDATE Chars SET Aggravated_Dmg = 8 WHERE Name = ? COLLATE NOCASE", (name,))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Aggravated_Dmg = 8 WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+                    self.dbmgr.query(arg)
                     created = "%s %s given to %s. %s has met FINAL DEATH!" % (amount, dmgtype, name, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "norm" and combinedmg == 7:
                     newamount = amount + dmg[1]
-                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Normal_Dmg = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(
+                        newamount, name)
+                    self.dbmgr.query(arg)
                     created = "%s %s given to %s. %s has been INCAPACITATED!" % (amount, dmgtype, name, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "norm" and combinedmg > 7:
                     newamount = amount + dmg[1]
-                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Normal_Dmg = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''(newamount, name)
+                    self.dbmgr.query(arg)
                     created = "%s %s given to %s. %s has been TORPRED!" % (amount, dmgtype, name, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "agg":
                     newamount = amount + dmg[0]
-                    c.execute("UPDATE Chars SET Aggravated_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Aggravated_Dmg = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(
+                        newamount, name)
+                    self.dbmgr.query(arg)
                     created = "%s %s given to %s." % (amount, dmgtype, name)
                     irc.reply(created)
 
                 elif dmgtype.lower() == "norm":
                     newamount = amount + dmg[1]
-                    c.execute("UPDATE Chars SET Normal_Dmg = ? WHERE Name = ? COLLATE NOCASE", (newamount, name))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET Normal_Dmg = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(
+                        newamount, name)
+                    self.dbmgr.query(arg)
                     created = "%s %s given to %s." % (amount, dmgtype, name)
                     irc.reply(created)
                 else:
                     raise NameError("Error: You must use !givedmg <value> <agg|norm>")
 
-                ## give new values...
+                ## give new values after setting them...
                 try:
                     response = self._damage(name)
                     # irc.reply(response)
@@ -1086,11 +1051,9 @@ class Characters(callbacks.Plugin):
                 finally:
                     pass
 
-        except NameError as e:
-            irc.reply(e)
-
-        finally:
-            conn.close()
+        except NameError as error:
+            self.dbmgr.rollback()
+            irc.reply(error)
 
     givedmg = wrap(givedmg, ['anything', 'int', 'anything'])
 
@@ -1101,17 +1064,14 @@ class Characters(callbacks.Plugin):
         """
         nicks = msg.nick
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
             checkname = self.dbmgr.checkname(nicks)
 
             if checkname:
-                c.execute("SELECT BP_Cur, Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = ?", (nicks,))
-                info = c.fetchone()
+                arg = '''SELECT BP_Cur, Aggravated_Dmg, Normal_Dmg FROM Chars WHERE Name = "{0}"'''.format(nicks)
+                info = self.dbmgr.readone(arg)
                 #first check what type of damage it is
                 if dmgtype.lower() == "agg":
-                    #do they have enough bp? its 5bp per agg healed
+                    #do they have enough bp? it's 5bp per agg healed
                     amountbp = amount * 5
                     newbp = info[0] - amountbp
                     if newbp >= 0:
@@ -1120,9 +1080,9 @@ class Characters(callbacks.Plugin):
                         if toheal < 0:
                             raise ArithmeticError("You don't have that much damage to heal.")
 
-                        c.execute("UPDATE Chars SET Aggravated_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
-                                                                                                     nicks))
-                        conn.commit()
+                        arg = '''UPDATE Chars SET Aggravated_Dmg = "{0}", BP_Cur = "{1}" WHERE Name = "{2}"'''.format(
+                            toheal, newbp, nicks)
+                        self.dbmgr.query(arg)
                         created = "%s %s damage healed for %s BP." % (amount, dmgtype, amountbp)
                         irc.reply(created)
 
@@ -1137,21 +1097,17 @@ class Characters(callbacks.Plugin):
                         if toheal < 0:
                             raise ArithmeticError("You don't have that much damage to heal.")
 
-                        c.execute("UPDATE Chars SET Normal_Dmg = ?, BP_Cur = ? WHERE Name = ?", (toheal, newbp,
-                                                                                                 nicks))
-                        conn.commit()
+                        arg = '''UPDATE Chars SET Normal_Dmg = "{0}", BP_Cur = "{1}" WHERE Name = "{2}"'''.format(
+                            toheal, newbp, nicks)
+                        self.dbmgr.query(arg)
                         created = "%s %s damage healed for %s BP" % (amount, dmgtype, amount)
                         irc.reply(created)
 
                     else:
                         raise ArithmeticError("You do not have enough BP!")
 
-        except ArithmeticError as e:
-            irc.reply(e)
-
-        finally:
-            conn.close()
-
+        except ArithmeticError as error:
+            irc.reply(error)
 
     heal = wrap(heal, ['int', 'anything'])
 
@@ -1161,20 +1117,20 @@ class Characters(callbacks.Plugin):
         Sets a characters as an NPC in the bot, preventing blood loss overnight, etc.
         """
         try:
-            conn = sqlite3.connect('characters.db')
-            conn.text_factory = str
-            c = conn.cursor()
-            c.execute("SELECT Name FROM Chars WHERE Name = ? COLLATE NOCASE", (name,))
-            checkname = c.fetchone()
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
-                c.execute("UPDATE Chars SET NPC = ? WHERE Name = ? COLLATE NOCASE", (numset, name))
-                conn.commit()
+                arg = '''UPDATE Chars SET NPC = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(numset, name)
+                self.dbmgr.query(arg)
                 created = "NPC set to %s" % numset
                 irc.reply(created)
+            else:
+                raise NameError(name)
 
-        finally:
-            conn.close()
+        except NameError as e:
+            self.dbmgr.rollback()
+            response = ircutils.mircColor("Error: Character \"%s\" not in database." % e, 4)
+            return response
 
     npc = wrap(npc, ['anything', 'int'])
 
@@ -1185,25 +1141,23 @@ class Characters(callbacks.Plugin):
         """
 
         try:
-            conn = sqlite3.connect('characters.db')
-            c = conn.cursor()
-            c.execute("SELECT BP_Cur, Name, NPC, BP_Max FROM Chars")
-            rows = c.fetchall()
+            arg = '''SELECT BP_Cur, Name, NPC, BP_Max FROM Chars'''
+            rows = self.dbmgr.fetchall(arg)
 
             for row in rows:
                 if row[2] == 0:
                     bpcur = row[0] - 1
                     if bpcur < 0:
                         bpcur = 0
-                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, row[1]))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, row[1])
                 else:
                     bpcur = row[3]
-                    c.execute("UPDATE Chars SET BP_Cur = ? WHERE Name = ?", (bpcur, row[1]))
-                    conn.commit()
+                    arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}"'''.format(bpcur, row[1])
+
+                self.dbmgr.query(arg)
 
         finally:
-            conn.close()
+            pass
 
     nightly = wrap(nightly)
 
@@ -1214,20 +1168,17 @@ class Characters(callbacks.Plugin):
         """
 
         try:
-            conn = sqlite3.connect('characters.db')
-            c = conn.cursor()
-            c.execute("SELECT WP_Cur, Name, NPC, WP_Max FROM Chars")
-            rows = c.fetchall()
+            arg = '''SELECT WP_Cur, Name, NPC, WP_Max FROM Chars'''
+            rows = self.dbmgr.fetchall(arg)
 
             for row in rows:
-
                 wpcur = row[0] + 1
                 if wpcur > row[3]:
                     wpcur = row[3]
-                c.execute("UPDATE Chars SET WP_Cur = ? WHERE Name = ?", (wpcur, row[1]))
-                conn.commit()
+                arg = '''UPDATE Chars SET WP_Cur = "{0}" WHERE Name = "{1}"'''.format(wpcur, row[1])
+                self.dbmgr.query(arg)
         finally:
-            conn.close()
+            pass
 
     weekly = wrap(weekly)
 
@@ -1238,62 +1189,50 @@ class Characters(callbacks.Plugin):
         """
 
         try:
-            conn = sqlite3.connect('characters.db')
-            c = conn.cursor()
-            conn.text_factory = str
-            c.execute("SELECT Date, ST, Amount, Reason FROM XPlog WHERE Name = ? COLLATE NOCASE", (name,))
-            logdata = c.fetchall()
+
+            arg = '''SELECT Date, ST, Amount, Reason FROM XPlog WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
+            logdata = self.dbmgr.fetchall(arg)
 
             if logdata:
                 reply = ('Date', 'ST Name', 'XP Spent', 'Reason')
-                irc.reply(reply)
+                irc.reply(reply, prefixNick=False)
 
                 for row in logdata:
-                    irc.reply(row)
+                    irc.reply(row, prefixNick=False)
+            else:
+                raise NameError(name)
 
-            elif not logdata:
-                irc.reply("Character not Found")
+        except NameError as error:
+            self.dbmgr.rollback()
+            response = ircutils.mircColor("Error: Character \"%s\" not in database." % error, 4)
+            return irc.reply(response, prefixNick=False)
 
-        finally:
-            conn.close()
 
+    charlog = wrap(charlog, ['admin', 'anything'])
 
-    charlog = wrap(charlog, ['anything'])
-
-    # def insert(self, irc, msgs, args):
-    #
+    # def ctest(self, irc, msg, args):
+    #     """Let's see if this works"""
+    #     irc.reply("ctest reporting in")
     #     conn = sqlite3.connect('characters.db')
-    #      c = conn.cursor()
-    #      c.execute("ALTER TABLE Chars ADD COLUMN Stats TEXT")
-    #        conn.commit()
-    #        conn.close()
+    #     c = conn.cursor()
+    #     c.execute("SELECT * FROM Chars")
+    #     rows = c.fetchall()
     #
-    #    insert = wrap(insert)
-
-
-    def ctest(self, irc, msg, args):
-        """Let's see if this works"""
-        irc.reply("ctest reporting in")
-        conn = sqlite3.connect('characters.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM Chars")
-        rows = c.fetchall()
-
-        for row in rows:
-            irc.reply(row)
-#
-# ctest = wrap(ctest)
-#
-# def logtest(self, irc, msg, args):
-#     conn = sqlite3.connect('characters.db')
-#     c = conn.cursor()
-#     c.execute("SELECT * FROM XPlog")
-#
-#     rows = c.fetchall()
-#
-#     for row in rows:
-#         irc.reply(row)
-#
-# logtest = wrap(logtest)
+    #     for row in rows:
+    #         irc.reply(row)
+    #
+    # ctest = wrap(ctest)
+    #
+    # def logtest(self, irc, msg, args):
+    #     conn = sqlite3.connect('characters.db')
+    #     c = conn.cursor()
+    #     c.execute("SELECT * FROM XPlog")
+    #
+    #     rows = c.fetchall()
+    #
+    #     for row in rows:
+    #         irc.reply(row)
+    #
+    # logtest = wrap(logtest)
 
 Class = Characters
