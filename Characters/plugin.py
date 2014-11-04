@@ -803,7 +803,7 @@ class Characters(callbacks.Plugin):
             checkname = self.dbmgr.checkname(nicks)
             reqname = self.dbmgr.reqname(nicks)
 
-            if amount > 3:
+            if 3 < amount < 1:
                 created = "You have requested %s dicks in your eye, you god damn smartass. " \
                           "Pick something below 3." % amount
                 irc.queueMsg(ircmsgs.notice(nicks, created))
