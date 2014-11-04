@@ -88,7 +88,6 @@ class Characters(callbacks.Plugin):
     """Character administration and tracking for Vampire: The Masquerade"""
 
     def __init__(self, irc):
-        #what does this do? I dunno!
         self.__parent = super(Characters, self)
         self.__parent.__init__(irc)
         self.dbmgr = DatabaseManager('characters.db')
@@ -101,9 +100,6 @@ class Characters(callbacks.Plugin):
         try:
             import os
             data = os.stat('characters.db').st_size
-            # arg = '''SELECT SQLITE_VERSION()'''
-            # data = self.dbmgr.readone(arg, name=None)
-            # irc.reply(data)
             if data < 1:
                 arg = '''CREATE TABLE Request(Id INTEGER PRIMARY KEY, Name TEXT, Amount INT)'''
                 create = self.dbmgr.query(arg)
@@ -168,7 +164,6 @@ class Characters(callbacks.Plugin):
         Removes the Character <name> from the bot.
         """
         try:
-            # check if that name is even in the bot
             checkname = self.dbmgr.checkname(name)
 
             if checkname:
@@ -402,9 +397,8 @@ class Characters(callbacks.Plugin):
 
         Set Character <name>'s current bp to <newbp>
         """
-        nicks = msg.nick
         try:
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
                 arg = '''UPDATE Chars SET BP_Cur = "{0}" WHERE Name = "{1}" COLLATE NOCASE '''.format(newbp, name)
@@ -412,8 +406,7 @@ class Characters(callbacks.Plugin):
                 created = "New BP set to %s for %s" % (newbp, name)
                 irc.reply(created, private=True)
             else:
-                nicks = msg.nick
-                raise NameError(nicks)
+                raise NameError(name)
 
         except NameError as e:
             self.dbmgr.rollback()
@@ -428,7 +421,7 @@ class Characters(callbacks.Plugin):
         Get the Characters bloodpool
         """
         try:
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
                 arg = '''SELECT BP_Cur, BP_Max FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
@@ -438,8 +431,7 @@ class Characters(callbacks.Plugin):
                 created = str(created) + bpcur + "/" + bpmax + ")"
                 irc.reply(created, private=True)
             else:
-                nicks = msg.nick
-                raise NameError(nicks)
+                raise NameError(name)
 
         except NameError as e:
             self.dbmgr.rollback()
@@ -623,9 +615,8 @@ class Characters(callbacks.Plugin):
 
         Set Character <name>'s current wp to <newwp>
         """
-        nicks = msg.nick
         try:
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
                 arg = '''UPDATE Chars SET WP_Cur = "{0}" WHERE Name = "{1}" COLLATE NOCASE'''.format(newwp, name)
@@ -633,8 +624,7 @@ class Characters(callbacks.Plugin):
                 created = "New WP set to %s for %s" % (newwp, name)
                 irc.reply(created, private=True)
             else:
-                nicks = msg.nick
-                raise NameError(nicks)
+                raise NameError(name)
 
         except NameError as e:
             self.dbmgr.rollback()
@@ -649,7 +639,7 @@ class Characters(callbacks.Plugin):
         Get the Characters willpower
         """
         try:
-            checkname = self.dbmgr.checkname(nicks)
+            checkname = self.dbmgr.checkname(name)
 
             if checkname:
                 arg = '''SELECT WP_Cur, WP_Max FROM Chars WHERE Name = "{0}" COLLATE NOCASE'''.format(name)
@@ -659,8 +649,7 @@ class Characters(callbacks.Plugin):
                 created = str(created) + wpcur + "/" + wpmax + ")"
                 irc.reply(created, private=True)
             else:
-                nicks = msg.nick
-                raise NameError(nicks)
+                raise NameError(name)
 
         except NameError as e:
             self.dbmgr.rollback()
@@ -762,8 +751,6 @@ class Characters(callbacks.Plugin):
 
         Manually spend a Characters XP
         """
-
-        nicks = msg.nick
         try:
             checkname = self.dbmgr.checkname(name)
 
@@ -855,7 +842,6 @@ class Characters(callbacks.Plugin):
         Add command adds a name and an amount to the list.
         Change command changes a name already on the list.
         """
-
         try:
             checkname = self.dbmgr.checkname(name)
             reqname = self.dbmgr.readone(name)
@@ -958,7 +944,7 @@ class Characters(callbacks.Plugin):
 
                 return response
             else:
-                raise NameError(nicks)
+                raise NameError(name)
 
         except NameError as e:
             self.dbmgr.rollback()
@@ -1046,7 +1032,6 @@ class Characters(callbacks.Plugin):
                 ## give new values after setting them...
                 try:
                     response = self._damage(name)
-                    # irc.reply(response)
                     irc.queueMsg(ircmsgs.privmsg(name, response))
                 finally:
                     pass
@@ -1206,7 +1191,6 @@ class Characters(callbacks.Plugin):
             self.dbmgr.rollback()
             response = ircutils.mircColor("Error: Character \"%s\" not in database." % error, 4)
             return irc.reply(response, prefixNick=False)
-
 
     charlog = wrap(charlog, ['admin', 'anything'])
 
