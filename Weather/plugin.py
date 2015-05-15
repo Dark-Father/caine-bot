@@ -39,7 +39,7 @@ import supybot.callbacks as callbacks
 #ZIP Code is Benton Heights, MI: 49022
 
 class Weather(callbacks.Plugin):
-    """Weather Control for the city of Minerva, MI"""
+    """Weather Control for the city of Constantinople"""
 
     def __init__(self, irc):
         self.__parent = super(Weather, self)
