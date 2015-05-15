@@ -33,12 +33,19 @@ from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+from peewee import *
+
+
+db = MySQLDatabase('cainitebot', user='cainitebot', passwd='cainebot')
+
 
 
 class Management(callbacks.Plugin):
     """Add the help for "@plugin help Management" here
     This should describe *how* to use this plugin."""
     threaded = True
+
+
 
 
 Class = Management
