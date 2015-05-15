@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2014, Liam Burke
+# Copyright (c) 2015, David Rickman
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,12 @@ def configure(advanced):
     # user or not.  You should effect your configuration by manipulating the
     # registry as appropriate.
     from supybot.questions import expect, anything, something, yn
-    conf.registerPlugin('Characters', True)
+    conf.registerPlugin('Management', True)
 
 
-Characters = conf.registerPlugin('Characters')
+Management = conf.registerPlugin('Management')
 # This is where your configuration variables (if any) should go.  For example:
-# conf.registerGlobalValue(Characters, 'someConfigVariableName',
+# conf.registerGlobalValue(Management, 'someConfigVariableName',
 #     registry.Boolean(False, """Help for someConfigVariableName."""))
 
 

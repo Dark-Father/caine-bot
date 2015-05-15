@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2014, Liam Burke
+# Copyright (c) 2015, David Rickman
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,20 @@
 
 ###
 
-from supybot.test import *
+import supybot.utils as utils
+from supybot.commands import *
+import supybot.plugins as plugins
+import supybot.ircutils as ircutils
+import supybot.callbacks as callbacks
 
-class CharactersTestCase(PluginTestCase):
-    plugins = ('Characters',)
+
+class Management(callbacks.Plugin):
+    """Add the help for "@plugin help Management" here
+    This should describe *how* to use this plugin."""
+    threaded = True
 
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+Class = Management
+
+
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:

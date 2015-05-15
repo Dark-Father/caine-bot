@@ -70,9 +70,9 @@ class Combat(callbacks.Plugin):
         startstop = "Start or end combat with: !combat start|end"
 
         try:
-            #error checking at the start, later power up the combat cycle.
+            # error checking at the start, later power up the combat cycle.
             if powered == "start":
-                #create the nested dictionaries if it doesn't exist
+                # create the nested dictionaries if it doesn't exist
                 if currentChannel not in self.channel_lock:
                     self.channel_lock[currentChannel] = True
                 elif self.channel_lock[currentChannel] is False:
@@ -86,14 +86,14 @@ class Combat(callbacks.Plugin):
                     self.roundlist[currentChannel] = {}
                 irc.reply("Combat Started. Round %s. Roll !inits to join. Declare !bp spends now."
                           % str(self.round_count[currentChannel]), prefixNick=False)
-                #Notify #stchambers that a fight has broken out in the channel.
+                # Notify #stchambers that a fight has broken out in the channel.
                 text = "A fight has broken out in: %s started by %s" % (currentChannel, nicks)
                 irc.sendMsg(ircmsgs.notice(stchannel, text))
 
             elif powered == "end" and currentChannel in self.channel_lock:
                 irc.reply("Combat Ended. Total number of rounds: %s"
                           % str(self.round_count[currentChannel]), prefixNick=False)
-                #reset for new combat
+                # Reset for new combat
                 self.channel_lock[currentChannel] = False
                 self.roundlist[currentChannel].clear()
                 self.round_count[currentChannel] = 1
@@ -109,18 +109,18 @@ class Combat(callbacks.Plugin):
         To add NPCs, cast: !inits <value> (NPC Name)."""
         currentChannel = msg.args[0]
         try:
-            #put the initiative list together
+            # Put the initiative list together
             if self.channel_lock[currentChannel] is True:
-                #roll init
+                # roll inits
                 rolled = inits + random.randint(1, 10)
 
-                #check to see if a NPC was passed.
+                # Check to see if a NPC was passed.
                 if not NPC:
                     character = msg.nick
                 else:
                     character = NPC
 
-                #join it in the round list dictionary, output reply.
+                # Join it in the round list dictionary, output reply.
                 self.roundlist[currentChannel][character] = rolled
                 joined = "%s rolled a: %s" % (ircutils.mircColor(character, 12), self.roundlist[currentChannel][character])
                 irc.reply(joined, prefixNick=False)

@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2014, Liam Burke
+# Copyright (c) 2015, David Rickman
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,17 @@ import supybot.world as world
 
 # Use this for the version of this plugin.  You may wish to put a CVS keyword
 # in here if you're keeping the plugin in CVS or some similar system.
-__version__ = "1.0"
+__version__ = ""
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = "Liam Burke"
+__author__ = supybot.authors.unknown
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = 'https://github.com/Elysia-Online/caine-bot' # 'http://supybot.com/Members/yourname/Characters/download'
+__url__ = '' # 'http://supybot.com/Members/yourname/Management/download'
 
 import config
 import plugin
