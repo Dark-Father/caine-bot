@@ -59,18 +59,13 @@ class Character(BaseModel):
     xp_total = IntegerField(default=0)
     xp_req = IntegerField(default=0)
     fed_already = DateField()
-    desc = TextField(default='Looks like you need a description. Set one before you go in-character.')
-    link = TextField(default='')
-    lastname = TextField(default='')
-    stats = TextField(default='')
+    desc = CharField(default='Looks like you need a description. Set one before you go in-character.')
+    link = CharField(default='')
+    lastname = CharField(default='')
+    stats = CharField(default='')
     dmg_norm = IntegerField(default=0)
     dmg_agg = IntegerField(default=0)
     isnpc = BooleanField(default=False)
-
-    class Meta:
-        indexes = (
-            ('name', True),  # Note the trailing comma!
-        )
 
 
 class XPlog(BaseModel):
@@ -82,17 +77,19 @@ class XPlog(BaseModel):
     reason = TextField(default='')
 
 
+##############################
+# Database Model Controls
+##############################
 # db.connect()
-db.drop_tables([XPlog], cascade=True)
-db.drop_tables([Character], cascade=True)
-db.create_table(Character, safe=True)
-db.create_table(XPlog, safe=True)
+# db.drop_tables([XPlog], cascade=True)
+# db.drop_tables([Character], cascade=True)
+# Character.create_table()
+# XPlog.create_table()
+
 
 ##############################
 # SUPYBOT CODE AFTER HERE
 ##############################
-
-
 class Management(callbacks.Plugin):
     """This is the full character management system for Cainite.org"""
     threaded = True
@@ -105,20 +102,14 @@ class Management(callbacks.Plugin):
         """<name> <bp> <wp>
         Adds the Character with <name> to the bot, with a maximum <bp> and maximum <wp>
         """
-        _wp, _bp = int(bp), int(wp)
-        #capability = 'characters.createchar'
-        #this check isn't really necessary, I was just testing capabilities.
-        # if capability:
-        #     if not ircdb.checkCapability(msg.prefix, capability):
-        #         irc.errorNoCapability(capability, Raise=True)
         try:
             with db.atomic():
                 Character.get_or_create(
                     name=name,
-                    bp=_bp,
-                    bp_cur=_bp,
-                    wp=_wp,
-                    wp_cur=_wp,
+                    bp=int(bp),
+                    bp_cur=int(bp),
+                    wp=int(wp),
+                    wp_cur=int(wp),
                     created=datetime.date.today())
 
                 created = "Added %s with %s bp and %s wp" % (name, _bp, _wp)
