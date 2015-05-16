@@ -83,8 +83,10 @@ class XPlog(BaseModel):
 # db.connect()
 # db.drop_tables([XPlog], cascade=True)
 # db.drop_tables([Character], cascade=True)
-# Character.create_table()
-# XPlog.create_table()
+XPlog.drop_table()
+Character.drop_table()
+Character.create_table()
+XPlog.create_table()
 
 
 ##############################
@@ -111,11 +113,8 @@ class Management(callbacks.Plugin):
                     wp=int(wp),
                     wp_cur=int(wp),
                     created=datetime.date.today())
-
-                created = "Added %s with %s bp and %s wp" % (name, _bp, _wp)
+                created = "Added %s with %s bp and %s wp" % (name, bp, wp)
                 irc.reply(created)
-
-                return 'Success'
         except IntegrityError or DoesNotExist:
             created = ircutils.mircColor("Error: Character \"%s\" already in database." % name, 4)
             irc.reply(created, private=True)
