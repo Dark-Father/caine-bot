@@ -1,6 +1,6 @@
 #Combat Plugin#
 
-The Combat plugin for Caine on Elysia-online.org. Track, manage and execute combat.
+The Combat plugin for Caine on Cainite.org. Track, manage and execute combat.
 
 #Combat Management Quick Overview:
 
