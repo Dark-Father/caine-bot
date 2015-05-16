@@ -15,7 +15,7 @@ IRC plugin for supybot
   * stfree
   * treat
   * sacrifice
-* character management, tracking:
+* REBUILDING - character management, tracking:
   * description, setting description, setting links
   * willpower, spending, recovering, administration
   * bloodpool, feeding, spending, administration
