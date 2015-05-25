@@ -186,7 +186,7 @@ class Management(callbacks.Plugin):
     createchar = wrap(createchar, ['anything', 'int', 'int'])
 
     def delchar(self, irc, msg, args, name):
-        """Removes the Character <name> from the bot."""
+        """Removes the Character from the bot."""
 
         try:
             with db.atomic():
@@ -200,6 +200,8 @@ class Management(callbacks.Plugin):
 
 
     delchar = wrap(delchar, ['anything'])
+
+    # Create Update Character Functions to increase blood and willpower pools.
 
     #########################################
     # Character Description Controls
@@ -392,8 +394,8 @@ class Management(callbacks.Plugin):
                     Character.update(fed_already=datetime.date.today()).where(Character.name == name).execute()
                 total = "BOTCH  >:D"
                 dicepool = 'You fed: {0} ({1}) {2} dice @diff {3}'.format(" ".join(fancy_outcome), total,
-                                                                                  str(num),
-                                                                                  str(difficulty))
+                                                                          str(num),
+                                                                          str(difficulty))
                 irc.reply(dicepool, private=True)
 
             elif 0 <= success <= ones:
@@ -402,8 +404,8 @@ class Management(callbacks.Plugin):
                     Character.update(fed_already=datetime.date.today()).where(Character.name == name).execute()
                 total = "Failure"
                 dicepool = 'You fed: {0} ({1}) {2} dice @diff {3}'.format(" ".join(fancy_outcome), total,
-                                                                                  str(num),
-                                                                                  str(difficulty))
+                                                                          str(num),
+                                                                          str(difficulty))
                 irc.reply(dicepool, private=True)
 
             elif total == 1:
@@ -420,8 +422,8 @@ class Management(callbacks.Plugin):
                                          bp_cur=bpcur).where(Character.name == name).execute()
                     total = "Gained 3 bp"
                     dicepool = 'You fed: {0} ({1}) {2} dice @diff {3}'.format(" ".join(fancy_outcome), total,
-                                                                                      str(num),
-                                                                                      str(difficulty))
+                                                                              str(num),
+                                                                              str(difficulty))
                 irc.reply(dicepool, private=True)
 
             elif total >= 3:
@@ -438,8 +440,8 @@ class Management(callbacks.Plugin):
                                          bp_cur=bpcur).where(Character.name == name).execute()
                     total = "Gained 6 bp"
                     dicepool = 'You fed: {0} ({1}) {2} dice @diff {3}'.format(" ".join(fancy_outcome), total,
-                                                                                      str(num),
-                                                                                      str(difficulty))
+                                                                              str(num),
+                                                                              str(difficulty))
                     irc.reply(dicepool, private=True)
 
         except DoesNotExist:
@@ -475,7 +477,7 @@ class Management(callbacks.Plugin):
     # Nightly job should query this and only free spends that are older than 7 days.
 
     def wp(self, irc, msg, args, wpnum, reason):
-        """wp <number if more than one> <reason>
+        """<number if more than one> <reason>
         """
         nick = str.capitalize(msg.nick)
 
@@ -500,7 +502,8 @@ class Management(callbacks.Plugin):
     wp = wrap(wp, [optional('int'), optional('text')])
 
     def setwp(self, irc, msg, args, name, newwp):
-        """setwp <name> <new willpower> - if above max will set to max
+        """<name> <new willpower>
+        if above max will set to max
         """
         try:
             with db.atomic():
@@ -515,7 +518,8 @@ class Management(callbacks.Plugin):
     setwp = wrap(setwp, ['anything', 'int'])
 
     def getcharwp(self, irc, msg, args, name):
-        """getcharwp <name>
+        """<name>
+        gets player's current willpower totals
         """
         name = str.capitalize(name)
         try:
@@ -547,7 +551,8 @@ class Management(callbacks.Plugin):
 
 
     def getcharxp(self, irc, msg, args, name):
-        """getcharxp <name>
+        """<name>
+        gets current player's XP totals
         """
         nick = str.capitalize(name)
         try:
@@ -563,7 +568,7 @@ class Management(callbacks.Plugin):
 
 
     def givexp(self, irc, msg, args, name, num):
-        """givexp <name> <num>
+        """<name> <num>
         """
         nick = str.capitalize(name)
 
@@ -580,7 +585,7 @@ class Management(callbacks.Plugin):
     givexp = wrap(givexp, ['anything', 'int'])
 
     def spendxp(self, irc, msg, args, name, xpnum, reason):
-        """spendxp <name> <num> <reason>
+        """<name> <num> <reason>
         """
         name = str.capitalize(name)
         st = str.capitalize(msg.nick)
@@ -602,10 +607,11 @@ class Management(callbacks.Plugin):
                     irc.reply("Experience successfully spent.")
         except Character.DoesNotExist:
             irc.reply("Character Not Found.", private=True)
+
     spendxp = wrap(spendxp, ['anything', 'int', 'text'])
 
     def requestxp(self, irc, msg, args, amount):
-        """requestxp <num>
+        """<num>
         See: http://cainite.org/the-game/experience/ for more help.
         """
         name = str.capitalize(msg.nick)
@@ -620,6 +626,7 @@ class Management(callbacks.Plugin):
                     irc.reply(message, private=True)
         except Character.DoesNotExist:
             irc.reply("Character Not Found.", private=True)
+
     requestxp = wrap(requestxp, ['int'])
 
     def requestlist(self, irc, msg, args):
@@ -637,27 +644,28 @@ class Management(callbacks.Plugin):
     requestlist = wrap(requestlist)
 
     def modifylist(self, irc, msg, args, command, name, amount):
-        """modifylist <command (remove|add|change)> <name> <amount (used for add|change)>
+        """<command (remove|add|change)> <name> <amount (used for add|change)>
         """
         name = str.capitalize(name)
         try:
             with db.atomic():
                 if command == 'remove':
-                        Character.update(xp_req=0).where(Character.name == name).execute()
-                        created = "{0} removed from requestxp list.".format(name)
-                        irc.reply(created, private=True)
+                    Character.update(xp_req=0).where(Character.name == name).execute()
+                    created = "{0} removed from requestxp list.".format(name)
+                    irc.reply(created, private=True)
                 elif command == 'add':
-                        Character.update(xp_req=amount).where(Character.name == name).execute()
-                        created = "{0} added with {1} XP requested.".format(name, str(amount))
-                        irc.reply(created, private=True)
+                    Character.update(xp_req=amount).where(Character.name == name).execute()
+                    created = "{0} added with {1} XP requested.".format(name, str(amount))
+                    irc.reply(created, private=True)
                 elif command == 'change':
-                        Character.update(xp_req=amount).where(Character.name == name).execute()
-                        created = "{0} changed to {1} XP requested.".format(name, str(amount))
-                        irc.reply(created, private=True)
+                    Character.update(xp_req=amount).where(Character.name == name).execute()
+                    created = "{0} changed to {1} XP requested.".format(name, str(amount))
+                    irc.reply(created, private=True)
                 else:
                     irc.reply("Error: Please use commands: remove, add or change")
         except Character.DoesNotExist:
             irc.reply("Character Not Found.", private=True)
+
     modifylist = wrap(modifylist, ['anything', 'anything', optional('int')])
 
     def approvelist(self, irc, msg, args):
@@ -670,6 +678,7 @@ class Management(callbacks.Plugin):
             irc.reply("Experience List updated.")
         except Character.DoesNotExist:
             irc.reply("Error with database..", private=True)
+
     approvelist = wrap(approvelist)
 
     def charlog(self, irc, msg, args, name):
@@ -683,6 +692,7 @@ class Management(callbacks.Plugin):
                     irc.reply(message)
         except XPlog.DoesNotExist:
             irc.reply("No Log Found.", private=True)
+
     charlog = wrap(charlog, ['admin', 'anything'])
 
     ##########################################
@@ -691,77 +701,150 @@ class Management(callbacks.Plugin):
 
     def _damage(self, name):
         try:
-        check_name = self.dbmgr.checkname(name)
-
-        if check_name:
-            arg = '''SELECT Aggravated_dmg, Normal_dmg FROM Chars WHERE Name = "{0}"'''.format(name)
-                        agg, norm = dmg[0], dmg[1]
-                        response = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
-                        if agg + norm == 0:
-                            response += " * UNDAMAGED"
-                        elif agg + norm == 1:
-                            response += " * BRUISED (0 Dice Penalty)"
-                        elif agg + norm == 2:
-                            response += " * HURT (-1 Dice Penalty)"
-                        elif agg + norm == 3:
-                            response += " * INJURED (-1 Dice Penalty)"
-                        elif agg + norm == 4:
-                            response += " * WOUNDED (-2 Dice Penalty)"
-                        elif agg + norm == 5:
-                            response += " * MAULED (-2 Dice Penalty)"
-                        elif agg + norm == 6:
-                            response += " * CRIPPLED (-5 Dice Penalty)"
-                        elif agg + norm == 7:
-                            response += " * INCAPACITATED"
-                        elif norm == 8:
-                            response += " * TORPORED"
-                        elif agg == 8:
-                            response += " * FINAL DEATH"
-            dmg = self.dbmgr.readone(arg)
-
+            with db.atomic():
+                q = Character.get(Character.name == name)
+                agg, norm = q.dmg_agg, q.dmg_norm
+                response = name + " " + str(agg) + " Agg | " + str(norm) + " Norm"
+                if agg + norm == 0:
+                    response += " * UNDAMAGED"
+                elif agg + norm == 1:
+                    response += " * BRUISED (0 Dice Penalty)"
+                elif agg + norm == 2:
+                    response += " * HURT (-1 Dice Penalty)"
+                elif agg + norm == 3:
+                    response += " * INJURED (-1 Dice Penalty)"
+                elif agg + norm == 4:
+                    response += " * WOUNDED (-2 Dice Penalty)"
+                elif agg + norm == 5:
+                    response += " * MAULED (-2 Dice Penalty)"
+                elif agg + norm == 6:
+                    response += " * CRIPPLED (-5 Dice Penalty)"
+                elif agg + norm == 7:
+                    response += " * INCAPACITATED"
+                elif norm == 8:
+                    response += " * TORPORED"
+                elif agg == 8:
+                    response += " * FINAL DEATH"
             return response
 
-        def getdmg(self, irc, msg, args):
+        except DoesNotExist:
+            response = "Character Not Found."
+            return response
 
-        getdmg = wrap(getdmg)
+    def getdmg(self, irc, msg, args):
+        """check your current damage
+        """
+        name = str.capitalize(msg.nick)
+        try:
+            response = self._damage(name)
+            irc.reply(response, private=True)
+        finally:
+            pass
 
-        def getchardmg(self, irc, msg, args, name):
+    getdmg = wrap(getdmg)
 
-        getchardmg = wrap(dmgcheck, ['anything'])
+    def getchardmg(self, irc, msg, args, name):
+        """<name>
+        check a player's current damage
+        """
+        try:
+            response = self._damage(name)
+            irc.reply(response)
+        finally:
+            pass
 
-        def givedmg(self, irc, msg, args, name, amount, dmgtype):
+    getchardmg = wrap(getchardmg, ['anything'])
 
-        givedmg = wrap(givedmg, ['anything', 'int', 'anything'])
+    def givedmg(self, irc, msg, args, name, amount, dmgtype):
+        """<name> <amount> <type>
+        Give players damage. Use agg or norm for type.
+        """
+        try:
+            with db.atomic():
+                q = Character.get(Character.name == name)
+                if dmgtype.lower() == 'norm':
+                    dmg = q.dmg_norm + amount
+                    Character.update(dmg_norm=dmg).where(Character.name == name).execute()
+                elif dmgtype.lower() == 'agg':
+                    dmg = q.dmg_agg + amount
+                    Character.update(dmg_agg=dmg).where(Character.name == name).execute()
+                else:
+                    irc.reply("Damage command incorrectly entered.")
+        finally:
+            pass
 
-        def heal(self, irc, msg, args, amount, dmgtype):
+        response = self._damage(name)
+        irc.reply(response, private=True)
 
-        heal = wrap(heal, ['int', 'anything'])
-#
-#
-# #########################################
-#
-#
-#     def npc(self, irc, msg, args, name, numset):
-#
-#
-#     npc = wrap(npc, ['anything', 'int'])
-#
-#
-#     def nightly(self, irc, msg, args):
-#
-#     nightly = wrap(nightly)
-#
-#
-#     def weekly(self, irc, msg, args):
-#
-#     weekly = wrap(weekly)
-#
-#
-#
-#
-#
-#
-#
+    givedmg = wrap(givedmg, ['anything', 'int', 'anything'])
+
+    def heal(self, irc, msg, args, amount, dmgtype):
+        """<amount> <damage type (norm|agg)>
+        """
+        name = str.capitalize(msg.nick)
+        try:
+            with db.atomic():
+                q = Character.get(Character.name == name)
+                if dmgtype.lower() is 'norm' or 'agg':
+                    if dmgtype.lower() == 'norm':
+                        newbp = q.bp_cur - amount
+                        if newbp > 0:
+                            Character.update(bp_cur=newbp, dmg_norm=Character.dmg_norm-amount).where(
+                                Character.name == name).execute()
+                            created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amount)
+                            irc.reply(created)
+                        else:
+                            irc.reply("Not enough blood available to heal", private=True)
+                    elif dmgtype.lower() == 'agg':
+                        amountbp = amount * 5
+                        newbp = q.bp_cur - amountbp
+                        if newbp > 0:
+                            Character.update(bp_cur=newbp, dmg_agg=Character.dmg_agg-amount).where(
+                                Character.name == name).execute()
+                            created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amountbp)
+                            irc.reply(created)
+                        else:
+                            irc.reply("Not enough blood available to heal", private=True)
+                else:
+                    irc.reply("Damage command entered incorrectly.")
+
+        except DoesNotExist:
+            irc.reply("Character Not Found.", private=True)
+
+    heal = wrap(heal, ['int', 'anything'])
+
+    ##########################################
+    # Storyteller Controls
+    ##########################################
+
+    def npc(self, irc, msg, args, name, npc):
+        name = str.capitalize(name)
+        try:
+            with db.atomic():
+                if npc is 1:
+                    Character.update(isnpc=True).where(Character.name == name).execute()
+                    irc.reply("Character has been set as NPC.")
+                elif npc is 0:
+                    Character.update(isnpc=False).where(Character.name == name).execute()
+                    irc.reply("Character has been set as PC.")
+        except DoesNotExist:
+            irc.reply("Character Not Found.", private=True)
+
+    npc = wrap(npc, ['anything', 'int'])
+
+    def nightly(self, irc, msg, args):
+        try:
+            with db.atomic():
+                Character.update(bp_cur=Character.bp_cur - 1).where(Character.isnpc == 0).execute()
+        finally:
+            pass
+
+    nightly = wrap(nightly)
+
+    # def weekly(self, irc, msg, args):
+    #
+    # weekly = wrap(weekly)
+
 Class = Management
 
 
