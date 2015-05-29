@@ -54,6 +54,7 @@ class Character(BaseModel):
     bp = IntegerField(default=0)
     bp_cur = IntegerField(default=0)
     ebp = IntegerField(default=0)
+    ebp_cur = IntegerField(default=0)
     wp = IntegerField(default=0)
     wp_cur = IntegerField(default=0)
     xp_cur = IntegerField(default=0)
@@ -82,6 +83,23 @@ class Botch(BaseModel):
     command = TextField(default='None Declared')
 
 
+class Willpower(BaseModel):
+    name = ForeignKeyField(Character,
+                           db_column='name',
+                           to_field='name',
+                           related_name='willpower')
+    date = DateTimeField(default=datetime.datetime.today())
+
+
+class Emergency(BaseModel):
+    name = ForeignKeyField(Character,
+                           db_column='name',
+                           to_field='name',
+                           related_name='efeed')
+    date = DateTimeField(default=datetime.datetime.today())
+    amount = IntegerField(default=0)
+
+
 class XPlog(BaseModel):
     name = ForeignKeyField(Character,
                            db_column='name',
@@ -100,11 +118,15 @@ class XPlog(BaseModel):
 # db.drop_tables([Character], cascade=True)
 XPlog.drop_table()
 Botch.drop_table()
+Willpower.drop_table(fail_silently=True)
+Emergency.drop_table(fail_silently=True)
 Character.drop_table()
 
 Character.create_table()
 XPlog.create_table()
 Botch.create_table()
+Willpower.create_table()
+Emergency.create_table()
 
 # test data
 
@@ -145,10 +167,8 @@ createchar(name="Lucifer", bp=15, wp=10)
 
 
 ################################
-# SUPYBOT!
+# The BOT
 ################################
-
-
 class Management(callbacks.Plugin):
     """This is the full character management system for Cainite.org"""
     threaded = True
@@ -306,24 +326,28 @@ class Management(callbacks.Plugin):
 
     def bp(self, irc, msg, args, bpnum, reason):
         nick = str.capitalize(msg.nick)
+        currentChannel, bot = msg.args[0], 'CAINE'
 
-        if not bpnum:
-            bpnum = 1
+        if currentChannel == bot:
+            irc.reply("You must be in a channel")
+        else:
+            if not bpnum:
+                bpnum = 1
 
-        try:
-            with db.atomic():
-                q = Character.get(Character.name == nick)
-                if bpnum >= q.bp_cur:
-                    irc.reply(ircutils.mircColor("Not enough blood available."), prefixNick=False, private=True)
-                else:
-                    bpnew = q.bp_cur - bpnum
-                    Character.update(bp_cur=bpnew).where(Character.name == nick).execute()
-                    q = Character.select().where(Character.name == nick).get()
-                    message = ircutils.mircColor("Blood spent. Blood Remaining: {0}/{1}".format(
-                        str(q.bp_cur), str(q.bp)), 4)
-                    irc.reply(message, prefixNick=False, private=True)
-        except Character.DoesNotExist:
-            irc.reply("Character Not Found.", private=True)
+            try:
+                with db.atomic():
+                    q = Character.get(Character.name == nick)
+                    if bpnum >= q.bp_cur:
+                        irc.reply(ircutils.mircColor("Not enough blood available."), prefixNick=False, private=True)
+                    else:
+                        bpnew = q.bp_cur - bpnum
+                        Character.update(bp_cur=bpnew).where(Character.name == nick).execute()
+                        q = Character.select().where(Character.name == nick).get()
+                        message = ircutils.mircColor("Blood spent. Blood Remaining: {0}/{1}".format(
+                            str(q.bp_cur), str(q.bp)), 4)
+                        irc.reply(message, prefixNick=False, private=True)
+            except Character.DoesNotExist:
+                irc.reply("Character Not Found.", private=True)
 
     bp = wrap(bp, [optional('int'), optional('text')])
 
@@ -480,24 +504,27 @@ class Management(callbacks.Plugin):
         """<number if more than one> <reason>
         """
         nick = str.capitalize(msg.nick)
+        currentChannel, bot = msg.args[0], 'CAINE'
 
-        if not wpnum:
-            wpnum = 1
-
-        try:
-            with db.atomic():
-                q = Character.get(Character.name == nick)
-                if wpnum >= q.wp_cur:
-                    irc.reply(ircutils.mircColor("Not enough willpower available."), prefixNick=False, private=True)
-                else:
-                    wpnew = q.wp_cur - wpnum
-                    Character.update(wp_cur=wpnew).where(Character.name == nick).execute()
-                    q = Character.select().where(Character.name == nick).get()
-                    message = ircutils.mircColor("Willpower spent. Willpower Remaining: ".format(
-                        str(q.wp_cur), str(q.wp)), 12)
-                    irc.reply(message, prefixNick=False, private=True)
-        except Character.DoesNotExist:
-            irc.reply("Character Not Found.", private=True)
+        if currentChannel == bot:
+            irc.reply("You must be in a channel")
+        else:
+            if not wpnum:
+                wpnum = 1
+            try:
+                with db.atomic():
+                    q = Character.get(Character.name == nick)
+                    if wpnum >= q.wp_cur:
+                        irc.reply(ircutils.mircColor("Not enough willpower available."), prefixNick=False, private=True)
+                    else:
+                        wpnew = q.wp_cur - wpnum
+                        Character.update(wp_cur=wpnew).where(Character.name == nick).execute()
+                        q = Character.select().where(Character.name == nick).get()
+                        message = ircutils.mircColor("Willpower spent. Willpower Remaining: ".format(
+                            str(q.wp_cur), str(q.wp)), 12)
+                        irc.reply(message, prefixNick=False, private=True)
+            except Character.DoesNotExist:
+                irc.reply("Character Not Found.", private=True)
 
     wp = wrap(wp, [optional('int'), optional('text')])
 
@@ -549,7 +576,6 @@ class Management(callbacks.Plugin):
 
     getxp = wrap(getxp)
 
-
     def getcharxp(self, irc, msg, args, name):
         """<name>
         gets current player's XP totals
@@ -565,7 +591,6 @@ class Management(callbacks.Plugin):
             irc.reply("Character Not Found.", private=True)
 
     getcharxp = wrap(getcharxp, ['anything'])
-
 
     def givexp(self, irc, msg, args, name, num):
         """<name> <num>
@@ -782,34 +807,43 @@ class Management(callbacks.Plugin):
         """<amount> <damage type (norm|agg)>
         """
         name = str.capitalize(msg.nick)
-        try:
-            with db.atomic():
-                q = Character.get(Character.name == name)
-                if dmgtype.lower() is 'norm' or 'agg':
-                    if dmgtype.lower() == 'norm':
-                        newbp = q.bp_cur - amount
-                        if newbp > 0:
-                            Character.update(bp_cur=newbp, dmg_norm=Character.dmg_norm-amount).where(
-                                Character.name == name).execute()
-                            created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amount)
-                            irc.reply(created)
-                        else:
-                            irc.reply("Not enough blood available to heal", private=True)
-                    elif dmgtype.lower() == 'agg':
-                        amountbp = amount * 5
-                        newbp = q.bp_cur - amountbp
-                        if newbp > 0:
-                            Character.update(bp_cur=newbp, dmg_agg=Character.dmg_agg-amount).where(
-                                Character.name == name).execute()
-                            created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amountbp)
-                            irc.reply(created)
-                        else:
-                            irc.reply("Not enough blood available to heal", private=True)
-                else:
-                    irc.reply("Damage command entered incorrectly.")
+        currentChannel = msg.args[0]
+        bot = '#stchambers'
 
-        except DoesNotExist:
-            irc.reply("Character Not Found.", private=True)
+        if currentChannel != bot:
+            irc.reply("You must be in in #stchambers to heal.")
+        else:
+            try:
+                with db.atomic():
+                    q = Character.get(Character.name == name)
+                    if q.dmg_agg or q.dmg_norm <= 0:
+                        Character.update(dmg_norm=0, dmg_agg=0).where(Character.name == name).execute()
+                        irc.reply("You have no damage to heal.")
+                    else:
+                        if dmgtype.lower() is 'norm' or 'agg':
+                            if dmgtype.lower() == 'norm':
+                                newbp = q.bp_cur - amount
+                                if newbp > 0:
+                                    Character.update(bp_cur=newbp, dmg_norm=Character.dmg_norm-amount).where(
+                                        Character.name == name).execute()
+                                    created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amount)
+                                    irc.reply(created)
+                                else:
+                                    irc.reply("Not enough blood available to heal", private=True)
+                            elif dmgtype.lower() == 'agg':
+                                amountbp = amount * 5
+                                newbp = q.bp_cur - amountbp
+                                if newbp > 0:
+                                    Character.update(bp_cur=newbp, dmg_agg=Character.dmg_agg-amount).where(
+                                        Character.name == name).execute()
+                                    created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amountbp)
+                                    irc.reply(created)
+                                else:
+                                    irc.reply("Not enough blood available to heal", private=True)
+                        else:
+                            irc.reply("Damage command entered incorrectly.")
+            except DoesNotExist:
+                irc.reply("Character Not Found.", private=True)
 
     heal = wrap(heal, ['int', 'anything'])
 
@@ -836,6 +870,11 @@ class Management(callbacks.Plugin):
         try:
             with db.atomic():
                 Character.update(bp_cur=Character.bp_cur - 1).where(Character.isnpc == 0).execute()
+
+                #willpower regen
+
+                #efeed regen
+
         finally:
             pass
 
