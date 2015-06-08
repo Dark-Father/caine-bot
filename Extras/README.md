@@ -1,4 +1,4 @@
-Additional commands to make reduant questions into easy plugins.
+Additional commands to make redundant questions into easy plugins.
 
 #Avaiable Commands:
 
@@ -7,10 +7,10 @@ This command checks #stchambers to see if there are any players that are not Sto
 This reports this status.
 
 #####Open Example: !stfree
-[IRC] <Caine> Chambers is free. Join #stchambers
+[IRC] <Caine> Chambers is OPEN. Join #stchambers now!
 
 #####Closed Example: !stfree
-[IRC] <Caine> Chambers is BUSY. Join #stchambers later...
+[IRC] <Caine> Chambers is BUSY. Occupied by: Lucifer
 
 ---
 
@@ -18,4 +18,4 @@ This reports this status.
 Sacrifice yourself to Caine in order to curry favor in dice rolls. This doesn't always appease him.
 
 ##!treat
-Feeds Caine a small treat. Beware though, he may rise to devour you.
+Feeds Caine a small treat. Beware though, he may rise to devour you instead.
