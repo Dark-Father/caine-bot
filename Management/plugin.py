@@ -27,13 +27,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
+from peewee import *
+from peewee import SelectQuery
+# import peewee
 
 import supybot.utils as utils
 from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
-from peewee import *
+
 import datetime
 from random import randint
 
@@ -88,15 +91,15 @@ class Willpower(BaseModel):
                            db_column='name',
                            to_field='name',
                            related_name='willpower')
-    date = DateTimeField(default=datetime.datetime.today())
+    date = DateField(default=datetime.datetime.today())
 
 
 class Emergency(BaseModel):
-    name = ForeignKeyField(Character,
-                           db_column='name',
-                           to_field='name',
-                           related_name='efeed')
-    date = DateTimeField(default=datetime.datetime.today())
+    player = ForeignKeyField(Character,
+                             related_name='efeed',
+                             db_column='player')
+    name = CharField(default='')
+    date = DateField(default=datetime.datetime.today())
     amount = IntegerField(default=0)
 
 
@@ -140,6 +143,7 @@ def createchar(name, bp, wp):
                 bp_cur=int(bp),
                 wp=int(wp),
                 wp_cur=int(wp),
+                ebp=20,
                 created=datetime.date.today())
     finally:
         pass
@@ -154,10 +158,19 @@ def botches(character):
     finally:
         pass
 
+
+def will(name):
+    try:
+        with db.atomic():
+            Willpower.create(
+                name=name,
+                date=datetime.datetime(2015, 05, 20)
+            )
+    finally:
+        pass
+
 # create some data
-createchar(name="Abel", bp=1, wp=1)
-createchar(name="Cain", bp=99, wp=99)
-createchar(name="Mike", bp=12, wp=12)
+createchar(name="Abel", bp=3, wp=3)
 createchar(name="Gabe", bp=13, wp=7)
 createchar(name="Lucifer", bp=15, wp=10)
 
@@ -217,7 +230,6 @@ class Management(callbacks.Plugin):
         except DoesNotExist:
             created = ircutils.mircColor("Error: Character {0} does not exist in database.".format(name), 4)
             irc.reply(created, private=True)
-
 
     delchar = wrap(delchar, ['anything'])
 
@@ -325,7 +337,7 @@ class Management(callbacks.Plugin):
     getbp = wrap(getbp)
 
     def bp(self, irc, msg, args, bpnum, reason):
-        nick = str.capitalize(msg.nick)
+        name = str.capitalize(msg.nick)
         currentChannel, bot = msg.args[0], 'CAINE'
 
         if currentChannel == bot:
@@ -336,13 +348,14 @@ class Management(callbacks.Plugin):
 
             try:
                 with db.atomic():
-                    q = Character.get(Character.name == nick)
+                    q = Character.get(Character.name == name)
                     if bpnum >= q.bp_cur:
-                        irc.reply(ircutils.mircColor("Not enough blood available."), prefixNick=False, private=True)
+                        irc.reply(ircutils.mircColor("Not enough blood available."),
+                                  prefixNick=False, private=True)
                     else:
                         bpnew = q.bp_cur - bpnum
-                        Character.update(bp_cur=bpnew).where(Character.name == nick).execute()
-                        q = Character.select().where(Character.name == nick).get()
+                        Character.update(bp_cur=bpnew).where(Character.name == name).execute()
+                        q = Character.select().where(Character.name == name).get()
                         message = ircutils.mircColor("Blood spent. Blood Remaining: {0}/{1}".format(
                             str(q.bp_cur), str(q.bp)), 4)
                         irc.reply(message, prefixNick=False, private=True)
@@ -475,17 +488,69 @@ class Management(callbacks.Plugin):
 
     feed = wrap(feed, ['int', 'int', optional('text')])
 
-    ##############
-    # CREATE E_FEED FUNCTION
-    #
-    #
-    # #########################################
+    def efeed(self, irc, msg, args, num):
+        """<num>
+        Feeds the <num> value in blood and adds it the character's current blood pool. There is a 30 day cycle.
+        Call the command with no value to see the remaining emergency blood available.
+        """
+        try:
+            with db.atomic():
+                name = str.capitalize(msg.nick)
+                if num:
+                    q = Character.get(Character.name == name)
+                    diff = q.ebp - q.ebp_cur
+
+                    if diff < num:
+                        irc.reply("Not enough emergency supply available.", private=True)
+                    else:
+                        add, bptest = q.ebp_cur + num, q.bp_cur + num
+
+                        if bptest > q.bp:
+                            blood = q.bp
+                        else:
+                            blood = q.bp_cur + num
+
+                        Character.update(ebp_cur=add, bp_cur=blood).where(Character.name == name).execute()
+                        Emergency.create(player=q.id, name=name, amount=num)
+                        q = Character.get(Character.name == name)
+                        message = ircutils.mircColor(
+                            "Added {0} to your bloodpool. Current Bloodpool is: {1}/{2}".format(
+                                num, q.bp_cur, q.bp), 4)
+                        irc.reply(message, private=True)
+                else:
+                    q = Character.get(Character.name == name)
+                    diff = q.ebp - q.ebp_cur
+                    message = ircutils.mircColor(
+                        "Emergency Blood Supply: Available: {0} | Spent: {1} | Total: {2}".format(diff, q.ebp_cur,
+                                                                                                  q.ebp), 4)
+                    irc.reply(message, private=True)
+        except DoesNotExist:
+            irc.reply("Character not found.", prefixNick=False)
+
+    efeed = wrap(efeed, [optional('int')])
+
+    def setefeed(self, irc, msg, args, name, num):
+        """<name> <num>
+        Set's a character's emergency blood supply value.
+        """
+        name = str.capitalize(name)
+
+        try:
+            with db.atomic():
+                Character.update(ebp=num).where(Character.name == name).execute()
+                irc.reply("Emergency Blood Pool Set.")
+        except DoesNotExist:
+            irc.reply("Character not found.", prefixNick=False)
+
+    setefeed = wrap(setefeed, ['anything', 'int'])
 
     ##########################################
     # Willpower Controls
     ##########################################
 
     def getwp(self, irc, msg, args):
+        """Get your character's current willpower.
+        """
         nick = str.capitalize(msg.nick)
         try:
             with db.atomic():
@@ -497,34 +562,35 @@ class Management(callbacks.Plugin):
 
     getwp = wrap(getwp)
 
-    # Should record willpower spends into a new database. One-to-Many relationship to character name.
-    # Nightly job should query this and only free spends that are older than 7 days.
-
     def wp(self, irc, msg, args, wpnum, reason):
         """<number if more than one> <reason>
         """
-        nick = str.capitalize(msg.nick)
+        name = str.capitalize(msg.nick)
         currentChannel, bot = msg.args[0], 'CAINE'
 
         if currentChannel == bot:
             irc.reply("You must be in a channel")
         else:
-            if not wpnum:
+            if wpnum > 1:
+                irc.reply("You must spend each point separately.")
+            else:
                 wpnum = 1
-            try:
-                with db.atomic():
-                    q = Character.get(Character.name == nick)
-                    if wpnum >= q.wp_cur:
-                        irc.reply(ircutils.mircColor("Not enough willpower available."), prefixNick=False, private=True)
-                    else:
-                        wpnew = q.wp_cur - wpnum
-                        Character.update(wp_cur=wpnew).where(Character.name == nick).execute()
-                        q = Character.select().where(Character.name == nick).get()
-                        message = ircutils.mircColor("Willpower spent. Willpower Remaining: ".format(
-                            str(q.wp_cur), str(q.wp)), 12)
-                        irc.reply(message, prefixNick=False, private=True)
-            except Character.DoesNotExist:
-                irc.reply("Character Not Found.", private=True)
+                try:
+                    with db.atomic():
+                        q = Character.get(Character.name == name)
+                        if wpnum >= q.wp_cur:
+                            irc.reply(ircutils.mircColor("Not enough willpower available."), prefixNick=False,
+                                      private=True)
+                        else:
+                            wpnew = q.wp_cur - wpnum
+                            Character.update(wp_cur=wpnew).where(Character.name == name).execute()
+                            Willpower.create(name=name)
+                            q = Character.select().where(Character.name == name).get()
+                            message = ircutils.mircColor("Willpower spent. Willpower Remaining: {0}/{1}".format(
+                                str(q.wp_cur), str(q.wp)), 12)
+                            irc.reply(message, prefixNick=False, private=True)
+                except Character.DoesNotExist:
+                    irc.reply("Character Not Found.", private=True)
 
     wp = wrap(wp, [optional('int'), optional('text')])
 
@@ -824,7 +890,7 @@ class Management(callbacks.Plugin):
                             if dmgtype.lower() == 'norm':
                                 newbp = q.bp_cur - amount
                                 if newbp > 0:
-                                    Character.update(bp_cur=newbp, dmg_norm=Character.dmg_norm-amount).where(
+                                    Character.update(bp_cur=newbp, dmg_norm=Character.dmg_norm - amount).where(
                                         Character.name == name).execute()
                                     created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amount)
                                     irc.reply(created)
@@ -834,7 +900,7 @@ class Management(callbacks.Plugin):
                                 amountbp = amount * 5
                                 newbp = q.bp_cur - amountbp
                                 if newbp > 0:
-                                    Character.update(bp_cur=newbp, dmg_agg=Character.dmg_agg-amount).where(
+                                    Character.update(bp_cur=newbp, dmg_agg=Character.dmg_agg - amount).where(
                                         Character.name == name).execute()
                                     created = "{0} {1} damage healed for {2} blood.".format(amount, dmgtype, amountbp)
                                     irc.reply(created)
@@ -869,22 +935,50 @@ class Management(callbacks.Plugin):
     def nightly(self, irc, msg, args):
         try:
             with db.atomic():
+                # daily awakening
                 Character.update(bp_cur=Character.bp_cur - 1).where(Character.isnpc == 0).execute()
 
-                #willpower regen
+                # Recovery Cycles
+                today = datetime.date.today()
+                wp_margin = datetime.timedelta(days=7)
+                wp_regen = today - wp_margin
+                ebp_margin = datetime.timedelta(days=30)
+                ebp_regen = today - ebp_margin
 
-                #efeed regen
+                # Willpower Recovery. 7+n day cycle.
+                for name in Character.select():
+                    count = 0
+                    for char in name.willpower:
+                        if count < 1:
+                            if char.date <= wp_regen:
+                                if name.wp_cur < name.wp:
+                                    add = name.wp_cur + 1
+                                    Character.update(wp_cur=add).where(
+                                        Character.name == name.name).execute()
+                                    char.delete_instance()
+                                    count += 1
 
+                # Emergency Blood Recovery. 30 day cycle
+                query = Emergency.select(fn.Sum(Emergency.amount).alias('totals'), Emergency).where(
+                    Emergency.date <= ebp_regen).group_by(Emergency.name)
+                for fed in query:
+                    q = Character.get(Character.name == fed.name)
+                    diff = q.ebp_cur - int(fed.totals)
+                    Character.update(ebp_cur=diff).where(Character.name == fed.name).execute()
+                Emergency.delete().where(Emergency.date <= ebp_regen).execute()
         finally:
             pass
 
     nightly = wrap(nightly)
 
-    # def weekly(self, irc, msg, args):
+    # def test(self, irc, msg, args):
+    #     try:
     #
-    # weekly = wrap(weekly)
+    #     finally:
+    #         pass
+    #
+    # test = wrap(test)
+
 
 Class = Management
-
-
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
