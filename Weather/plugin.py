@@ -50,7 +50,7 @@ class Weather(callbacks.Plugin):
         """
         _URL = "http://api.openweathermap.org/data/2.5/weather?id="
         _CITY_ID = "4985711"
-        _KEY = "6aea5fa7d9438052b2403d6a1203dafb"
+        _KEY = ""
         _IMP = "&units=imperial"
         _METRIC = "&units=metric"
         #EXAMPLE: http://api.openweathermap.org/data/2.5/forecast/city?id=524901&APPID=1111111111
