@@ -37,7 +37,7 @@ import random
 
 class Extras(callbacks.Plugin):
     """Extra commands to make life easier and better for players and Storytellers.
-    https://github.com/freedomischaos/caine-bot/blob/master/Extras/README.txt"""
+    """
     threaded = True
 
     def __init__(self, irc):
@@ -50,7 +50,7 @@ class Extras(callbacks.Plugin):
     def stfree(self, irc, msg, args):
         """takes no arguments
         Checks #stchambers to see if occupied."""
-        channel = "#stchambers"
+        channel = "#storyteller"
         bot = str.capitalize(irc.nick)
         storytellers = [x.capitalize() for x in list(irc.state.channels[channel].ops)]
         diff = list(set([x.lower() for x in list(irc.state.channels[channel].users)]) -
@@ -75,33 +75,38 @@ class Extras(callbacks.Plugin):
     stfree = wrap(stfree)
 
     def treat(self, irc, msg, args):
-        currentChannel = msg.args[0]
+        """takes no arguments
+        feeds a treat to the bot"""
+        current_channel = msg.args[0]
         only_channel = "#ooc"
         nick = msg.nick
 
-        if currentChannel == only_channel:
+        if current_channel == only_channel:
             if nick not in self.snack:
                 self.snack[nick] = 0
 
             if self.snack[nick] < random.randint(1, 1000):
                 self.snack[nick] += 1
-                irc.reply("You fed a treat to %s. You've fed %s treats to Caine."
-                          % (irc.nick, self.snack[nick]))
+                irc.reply("You've fed a treat to %s. You've fed %s treats to %s."
+                          % (irc.nick, self.snack[nick], irc.nick))
             else:
-                irc.reply("Caine has risen from torpor and devoured you as a treat.")
+                irc.reply("%s has risen from torpor and devoured you as a treat."
+                          % irc.nick)
                 self.snack[nick] = 0
         else:
             irc.error("Command only available in #ooc.", Raise=True)
     treat = wrap(treat)
 
     def sacrifice(self, irc, msg, args):
-        currentChannel = msg.args[0]
+        """takes no arguments
+        sacrifices to the bot!"""
+        current_channel = msg.args[0]
         only_channel = "#ooc"
 
         try:
-            if currentChannel == only_channel:
-                die = random.randint(1, 100)
-                if die < 90:
+            if current_channel == only_channel:
+                die = random.randint(1, 10)
+                if die < 1:
                     irc.reply("%s sacrifices themselves to %s."
                               % (msg.nick, irc.nick), prefixNick=False)
                 else:
@@ -111,7 +116,7 @@ class Extras(callbacks.Plugin):
                 irc.error("Command only available in #ooc.", Raise=True)
         except KeyError:
             pass
-    sacrifice = wrap(sacrifice, [optional('text')])
+    sacrifice = wrap(sacrifice)
 Class = Extras
 
 
