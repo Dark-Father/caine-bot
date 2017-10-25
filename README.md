@@ -4,9 +4,9 @@ caine-bot
 IRC plugin for supybot
 
 
-##Features:
+## Features:
 
-###Working:
+### Working:
 
 * dice rolling
 * weather system
@@ -21,10 +21,12 @@ IRC plugin for supybot
   * bloodpool, feeding, spending, administration
   * experience, requesting, spending, administration
 
-###In Progress:
+### In Progress:
+
 * feature enhancement
 
 
-###Planned:
+### Planned:
+
 * webapp for further character management
 
